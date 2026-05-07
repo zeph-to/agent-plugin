@@ -39,7 +39,7 @@ These fire automatically via hooks. No agent cooperation needed — 100% reliabl
 **One line:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tak-bro/zeph-agent-plugin/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/lemoncloud-io/zeph-plugin/main/install.sh | bash
 ```
 
 Detects your installed agents and configures each one automatically.
@@ -47,7 +47,7 @@ Detects your installed agents and configures each one automatically.
 **Manual (Claude Code only):**
 
 ```bash
-claude plugin marketplace add tak-bro/zeph-agent-plugin
+claude plugin marketplace add lemoncloud-io/zeph-plugin
 claude plugin install zeph@zeph
 ```
 
@@ -55,7 +55,7 @@ claude plugin install zeph@zeph
 
 ```bash
 gemini mcp add zeph -- npx -y @zeph-to/mcp-server
-gemini extensions install https://github.com/tak-bro/zeph-agent-plugin
+gemini extensions install https://github.com/lemoncloud-io/zeph-plugin
 ```
 
 ## Configuration
@@ -119,18 +119,18 @@ Or run `/zeph:setup` inside Claude Code for guided configuration.
 
 **Check for updates:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tak-bro/zeph-agent-plugin/main/install.sh | bash -s -- --check-update
+curl -fsSL https://raw.githubusercontent.com/lemoncloud-io/zeph-plugin/main/install.sh | bash -s -- --check-update
 ```
 
 **Verify installation health:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tak-bro/zeph-agent-plugin/main/install.sh | bash -s -- --verify
+curl -fsSL https://raw.githubusercontent.com/lemoncloud-io/zeph-plugin/main/install.sh | bash -s -- --verify
 ```
 
 ## Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tak-bro/zeph-agent-plugin/main/install.sh | bash -s -- --uninstall
+curl -fsSL https://raw.githubusercontent.com/lemoncloud-io/zeph-plugin/main/install.sh | bash -s -- --uninstall
 ```
 
 Remove env vars (`ZEPH_API_KEY`, `ZEPH_HOOK_ID`) from your shell profile manually.

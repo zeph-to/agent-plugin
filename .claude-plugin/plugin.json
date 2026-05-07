@@ -6,7 +6,7 @@
     "name": "tak-bro",
     "url": "https://github.com/tak-bro"
   },
-  "repository": "https://github.com/tak-bro/zeph-agent-plugin",
+  "repository": "https://github.com/lemoncloud-io/zeph-plugin",
   "license": "MIT",
   "keywords": ["zeph", "notification", "push", "mcp", "prompt"],
   "mcpServers": "./.mcp.json",
