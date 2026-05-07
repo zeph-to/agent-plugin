@@ -89,9 +89,10 @@ Or run `/zeph:setup` inside Claude Code for guided configuration.
 | Gemini CLI | — | ✓ | ✓ | Extension + MCP |
 | Cursor | — | ✓ | ✓ | mcp.json + rule |
 | Windsurf | — | ✓ | ✓ | mcp_config.json + rule |
-| Cline | — | — | ✓ | Rule file |
+| Cline | — | — | ✓ | Rule file (auto) |
 | GitHub Copilot | — | — | ✓ | Instructions |
-| Codex | — | — | ✓ | Hooks |
+| Codex | — | — | ✓ | Hooks (auto) |
+| Aider | — | — | ✓ | Config (auto) |
 | Others (Zed, etc.) | — | — | ✓ | AGENTS.md |
 
 > Auto Hooks (Stop/AskUserQuestion) are Claude Code plugin only. Other agents get MCP tools and/or behavior rules.
@@ -113,6 +114,18 @@ Or run `/zeph:setup` inside Claude Code for guided configuration.
 1. **Hooks** (automatic) — Shell commands fire on Stop/AskUserQuestion events. Uses `zeph` CLI (`@zeph-to/hook-sdk`). Always works.
 2. **MCP server** (on request) — `@zeph-to/mcp-server` registers tools. Agent calls them voluntarily or when asked.
 3. **Behavior rules** (SKILL.md) — Tell the agent when to use tools. Soft guidance, not enforced.
+
+## Maintenance
+
+**Check for updates:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/tak-bro/zeph-agent-plugin/main/install.sh | bash -s -- --check-update
+```
+
+**Verify installation health:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/tak-bro/zeph-agent-plugin/main/install.sh | bash -s -- --verify
+```
 
 ## Uninstall
 
