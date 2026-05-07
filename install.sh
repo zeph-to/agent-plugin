@@ -2,7 +2,7 @@
 # Zeph Agent Plugin — multi-agent installer
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/lemoncloud-io/zeph-plugin/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | bash
 #
 # Flags:
 #   --only <agent>   Install only for named agent (repeatable)
@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-REPO="lemoncloud-io/zeph-plugin"
+REPO="zeph-to/plugin"
 RAW_BASE="https://raw.githubusercontent.com/$REPO/main"
 
 # ── Flags ──────────────────────────────────────────────────────────────────
