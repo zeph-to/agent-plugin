@@ -10,7 +10,6 @@
   "license": "MIT",
   "keywords": ["zeph", "notification", "push", "mcp", "prompt"],
   "mcpServers": "./.mcp.json",
-  "skills": "skills/",
   "hooks": {
     "SessionStart": [
       {
