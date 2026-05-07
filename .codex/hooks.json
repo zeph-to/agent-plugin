@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Zeph MCP tools available: zeph_notify (push notification), zeph_prompt (user decision), zeph_input (text input), zeph_clipboard, zeph_file. Use after long tasks or when user input needed. Do NOT use for short responses or read-only operations.'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

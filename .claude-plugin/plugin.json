@@ -1,0 +1,27 @@
+{
+  "name": "zeph",
+  "version": "0.1.0",
+  "description": "AI agent notifications via Zeph — notify, prompt, input across devices",
+  "author": {
+    "name": "tak-bro",
+    "url": "https://github.com/tak-bro"
+  },
+  "repository": "https://github.com/tak-bro/zeph-agent-plugin",
+  "license": "MIT",
+  "keywords": ["zeph", "notification", "push", "mcp", "prompt"],
+  "mcpServers": "./.mcp.json",
+  "skills": "skills/",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/zeph-setup.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

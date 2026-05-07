@@ -1,0 +1,6 @@
+{
+  "name": "zeph",
+  "description": "AI agent notifications via Zeph — notify, prompt, input across devices",
+  "version": "0.1.0",
+  "contextFileName": "GEMINI.md"
+}
