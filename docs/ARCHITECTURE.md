@@ -1,0 +1,137 @@
+# Zeph Agent Plugin — Architecture Guide
+
+## 3개의 레이어
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 3: Plugin (hooks)                                     │
+│ → 자동 실행. Claude Code 전용. 100% 신뢰.                    │
+│ → Stop hook, AskUserQuestion hook                           │
+│ → zeph CLI (@zeph-to/hook-sdk) 사용                          │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 2: MCP Server (@zeph-to/mcp-server)                   │
+│ → AI가 tool 호출. 요청 시 동작.                               │
+│ → zeph_notify, zeph_prompt, zeph_input, zeph_clipboard 등   │
+│ → Claude Code, Gemini CLI, Cursor, Windsurf 지원            │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 1: CLI (@zeph-to/hook-sdk)                            │
+│ → shell command. 어디서든 실행 가능.                          │
+│ → zeph notify --title "..." --body "..."                    │
+│ → notify만 가능. prompt/input 불가.                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 각 레이어 비교
+
+| | CLI | MCP Server | Plugin (hooks) |
+|---|---|---|---|
+| **npm 패키지** | @zeph-to/hook-sdk | @zeph-to/mcp-server | — (GitHub repo) |
+| **실행 방식** | shell command | AI agent가 tool 호출 | Claude Code event hook |
+| **트리거** | 수동 / hook script | AI 자발적 or 유저 요청 | 자동 (이벤트 기반) |
+| **신뢰도** | 100% | ~70% (요청 시 100%) | 100% |
+| **notify** | ✓ | ✓ | ✓ (Stop hook) |
+| **prompt** | ✗ | ✓ | ✗ |
+| **input** | ✗ | ✓ | ✗ |
+| **clipboard** | ✗ | ✓ | ✗ |
+| **file** | ✗ | ✓ | ✗ |
+| **지원 에이전트** | 아무데서나 | MCP 지원 에이전트 | Claude Code only |
+
+## Plugin Hooks 상세
+
+### Stop Hook (zeph-stop.sh)
+
+```
+Claude 응답 종료
+  → Stop hook 실행
+  → transcript 파일에서 tool_use 횟수 카운트
+  → 2개 이상이면 → zeph CLI로 push 전송
+  → 2개 미만이면 → skip (노이즈 방지)
+```
+
+**언제 동작:** 매 Claude 응답 후 자동 실행
+**알림 내용:** "Claude 완료: {project} / {branch} — {N} tools"
+**조건:** tool 사용 2개 이상 (짧은 대화 필터링)
+
+### AskUserQuestion Hook (zeph-ask.sh)
+
+```
+Claude가 유저에게 질문 (AskUserQuestion tool 호출)
+  → PreToolUse hook 실행
+  → 질문 내용 추출
+  → zeph CLI로 push 전송
+```
+
+**언제 동작:** Claude가 질문할 때 자동
+**알림 내용:** "Claude 질문: {project} / {질문 내용}"
+
+### SessionStart Hook (zeph-setup.js)
+
+```
+세션 시작
+  → ZEPH_API_KEY 확인
+  → 없으면 설정 안내 메시지 출력
+  → 있으면 행동 규칙 주입 (MCP tool 사용 가이드)
+```
+
+**참고:** 행동 규칙 주입은 AI의 tool 호출을 "권장"하지만 강제하지 않음.
+
+## MCP Server Tools 상세
+
+| Tool | 용도 | 동작 | 필요 env |
+|------|------|------|----------|
+| zeph_notify | 알림 전송 | fire & forget | ZEPH_API_KEY |
+| zeph_prompt | 선택지 질문 | blocking (응답 대기) | + ZEPH_HOOK_ID |
+| zeph_input | 텍스트 입력 | blocking (응답 대기) | + ZEPH_HOOK_ID |
+| zeph_clipboard | 클립보드 복사 | fire & forget | ZEPH_API_KEY |
+| zeph_file | 파일 전송 | fire & forget | ZEPH_API_KEY |
+| zeph_list | 알림 목록 | read only | ZEPH_API_KEY |
+| zeph_dismiss | 알림 읽음 | fire & forget | ZEPH_API_KEY |
+| zeph_dismiss_all | 전체 읽음 | fire & forget | ZEPH_API_KEY |
+| zeph_broadcast | 채널 전송 | fire & forget | ZEPH_API_KEY |
+
+## CLI 사용법
+
+```bash
+# 설치
+npm i -g @zeph-to/hook-sdk
+
+# 기본 사용
+zeph notify --title "빌드 완료" --body "에러 0건"
+
+# env var로 인증
+export ZEPH_API_KEY="ak_..."
+zeph notify --title "test"
+
+# flag로 인증
+zeph notify --key ak_... --title "test"
+
+# dev 서버
+export ZEPH_BASE_URL="https://api.zeph.to/d1"
+zeph notify --title "dev test"
+```
+
+## 유저 시나리오별 가이드
+
+### 1. 여러 세션 돌리고 끝나면 알림 받고 싶다
+→ **Plugin 설치만 하면 됨.** Stop hook이 자동 알림.
+
+### 2. Claude가 질문할 때 모바일로 알림 받고 싶다
+→ **Plugin 설치만 하면 됨.** AskUserQuestion hook이 자동 알림.
+→ 단, 답변은 터미널에서 해야 함.
+
+### 3. 모바일에서 직접 답변하고 싶다
+→ 세션 시작 시 프롬프트:
+```
+나한테 물어볼 거 있으면 zeph_prompt 써. 끝나면 zeph_notify로 알려줘.
+```
+→ ZEPH_HOOK_ID 필요.
+
+### 4. CI/CD나 스크립트에서 알림 보내고 싶다
+→ **CLI만 사용:**
+```bash
+zeph notify --key ak_... --title "Deploy 완료"
+```
+
+### 5. 다른 AI 에이전트 (Cursor, Gemini)에서 쓰고 싶다
+→ **install.sh 실행.** MCP 서버 자동 등록.
+→ Auto hooks는 Claude Code only.
