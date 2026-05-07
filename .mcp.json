@@ -1,12 +1,11 @@
 {
-  "zeph": {
-    "command": "npx",
-    "args": ["-y", "@zeph-to/mcp-server"],
-    "env": {
-      "ZEPH_API_KEY": "${ZEPH_API_KEY}",
-      "ZEPH_HOOK_ID": "${ZEPH_HOOK_ID}",
-      "ZEPH_DEVICE_ID": "${ZEPH_DEVICE_ID}",
-      "ZEPH_BASE_URL": "${ZEPH_BASE_URL}"
+  "mcpServers": {
+    "zeph": {
+      "command": "npx",
+      "args": ["-y", "@zeph-to/mcp-server"],
+      "env": {
+        "ZEPH_API_KEY": "${ZEPH_API_KEY}"
+      }
     }
   }
 }

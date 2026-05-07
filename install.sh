@@ -150,9 +150,7 @@ d['mcpServers']['zeph'] = {
   'command': 'npx',
   'args': ['-y', '@zeph-to/mcp-server'],
   'env': {
-    'ZEPH_API_KEY': '\${ZEPH_API_KEY}',
-    'ZEPH_HOOK_ID': '\${ZEPH_HOOK_ID}',
-    'ZEPH_BASE_URL': '\${ZEPH_BASE_URL}'
+    'ZEPH_API_KEY': '\${ZEPH_API_KEY}'
   }
 }
 json.dump(d, open(f, 'w'), indent=2)
@@ -188,9 +186,7 @@ d['mcpServers']['zeph'] = {
   'command': 'npx',
   'args': ['-y', '@zeph-to/mcp-server'],
   'env': {
-    'ZEPH_API_KEY': '\${ZEPH_API_KEY}',
-    'ZEPH_HOOK_ID': '\${ZEPH_HOOK_ID}',
-    'ZEPH_BASE_URL': '\${ZEPH_BASE_URL}'
+    'ZEPH_API_KEY': '\${ZEPH_API_KEY}'
   }
 }
 json.dump(d, open(f, 'w'), indent=2)
@@ -239,8 +235,11 @@ if [ $SKIP_CONFIG -eq 0 ] && [ $DRY -eq 0 ]; then
 
   # Write to shell profile
   if [ -n "$CURRENT_KEY" ]; then
-    SHELL_RC="$HOME/.zshrc"
-    [ -f "$HOME/.bashrc" ] && [ ! -f "$HOME/.zshrc" ] && SHELL_RC="$HOME/.bashrc"
+    if [ -f "$HOME/.zshrc" ]; then SHELL_RC="$HOME/.zshrc"
+    elif [ -f "$HOME/.bashrc" ]; then SHELL_RC="$HOME/.bashrc"
+    elif [ -f "$HOME/.bash_profile" ]; then SHELL_RC="$HOME/.bash_profile"
+    elif [ -f "$HOME/.profile" ]; then SHELL_RC="$HOME/.profile"
+    else SHELL_RC="$HOME/.zshrc"; fi
 
     MARKER="# Added by Zeph"
     if ! grep -q "$MARKER" "$SHELL_RC" 2>/dev/null; then
