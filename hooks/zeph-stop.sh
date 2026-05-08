@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Stop hook — notify when real work done (tool_count >= 2)
-# Includes last assistant response summary in push body
+# Sends last assistant response as push body
 
 INPUT=$(cat)
 TRANSCRIPT=$(echo "$INPUT" | jq -r '.transcript_path // empty')
@@ -18,24 +18,13 @@ fi
 PROJECT=$(basename "$CLAUDE_PROJECT_DIR" 2>/dev/null || echo "unknown")
 BRANCH=$(git -C "$CLAUDE_PROJECT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "-")
 
-# Extract last assistant text from transcript JSONL
+# Extract last assistant text using jq
 SUMMARY=$(tac "$TRANSCRIPT" 2>/dev/null \
   | grep -m1 '"assistant"' \
-  | python3 -c "
-import sys, json
-try:
-    line = sys.stdin.readline()
-    msg = json.loads(line)
-    parts = msg.get('message', {}).get('content', [])
-    texts = [p.get('text','') for p in parts if p.get('type') == 'text']
-    out = ' '.join(texts).replace('\n', ' ').strip()
-    print(out[:200] if out else '')
-except:
-    print('')
-" 2>/dev/null)
+  | jq -r '[.message.content[] | select(.type=="text") | .text] | join(" ") | .[0:200]' 2>/dev/null)
 
 BODY="${BRANCH} — ${TOOL_COUNT} tools"
-if [ -n "$SUMMARY" ]; then
+if [ -n "$SUMMARY" ] && [ "$SUMMARY" != "null" ]; then
   BODY="$SUMMARY"
 fi
 
