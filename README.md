@@ -1,139 +1,165 @@
-# Zeph Agent Plugin
+# Zeph — AI Agent Notifications
 
-Push notifications, interactive prompts, and text input for AI coding agents — across all your devices.
+Get push notifications on your phone when your AI coding agent finishes work or needs input.
 
-## What it does
+Works with Claude Code, Gemini CLI, Cursor, Windsurf, and more.
 
-When your AI agent (Claude Code, Gemini CLI, Cursor, etc.) finishes a long task or needs your input, it sends a notification to your phone/browser/desktop via [Zeph](https://zeph.to).
+## Quick Start (Claude Code)
 
-## Features
+```bash
+# 1. Install plugin
+claude plugin marketplace add zeph-to/plugin
+claude plugin install zeph@zeph
 
-### Automatic (via hooks — always works)
+# 2. Configure (interactive — saves to ~/.zeph/config.json)
+npx @zeph-to/hook-sdk setup
+```
 
-| Feature | Trigger | What happens |
-|---------|---------|--------------|
-| Task completion alert | Claude stops after 2+ tool calls | Push: "Claude 완료: {project} / {branch} — {N} tools" |
-| Question alert | Claude calls AskUserQuestion | Push: "Claude 질문: {project} / {question}" |
+That's it. Restart Claude Code and you'll start getting notifications.
 
-These fire automatically via hooks. No agent cooperation needed — 100% reliable.
+## What You Get
 
-### MCP Tools (via agent — on request)
+### Automatic — always works, no prompting needed
 
-| Tool | What it does | Reliability |
-|------|-------------|-------------|
-| `zeph_notify` | Push notification with summary | Works when asked ("끝나면 zeph으로 알려줘") |
-| `zeph_prompt` | Ask user to pick from options | Works when asked. Requires `ZEPH_HOOK_ID` |
-| `zeph_input` | Request free-form text input | Works when asked. Requires `ZEPH_HOOK_ID` |
-| `zeph_clipboard` | Copy text to clipboard | Works when asked |
-| `zeph_file` | Send file to device | Works when asked |
+| What happens | When |
+|-------------|------|
+| Push: task completion summary | Claude finishes work (2+ tool calls) |
+| Push: question text | Claude asks you a question |
 
-> **Note:** MCP tools require the agent to voluntarily call them. Behavior rules (SKILL.md) encourage usage, but agents may not always follow. For guaranteed notifications, rely on the automatic hooks above.
+These use hooks — shell commands that fire on Claude events. 100% reliable.
 
-### What doesn't work automatically
+### On request — ask Claude to use them
 
-- **Agent auto-notify on completion** — SKILL.md rules tell the agent to notify after work, but agents don't reliably follow tool-calling instructions injected via hooks. Sometimes they do, sometimes they don't.
-- **Mobile response to questions** — `zeph_prompt`/`zeph_input` let you answer from your phone, but only if the agent chooses to use them instead of `AskUserQuestion`. You can request this explicitly: "질문 있으면 zeph_prompt로 물어봐".
+| Tool | What it does | How to trigger |
+|------|-------------|----------------|
+| `zeph_notify` | Push notification | "끝나면 zeph으로 알려줘" |
+| `zeph_prompt` | Pick from options (mobile-answerable) | "zeph_prompt로 물어봐" |
+| `zeph_input` | Free-form text input (mobile-answerable) | "zeph_input으로 받아" |
+| `zeph_clipboard` | Copy to clipboard | "클립보드에 복사해줘" |
+| `zeph_file` | Send a file | "파일로 보내줘" |
 
-## Install
+These use MCP tools. Claude calls them when asked (or sometimes voluntarily).
 
-**One line:**
+> `zeph_prompt` and `zeph_input` require `ZEPH_HOOK_ID` — enter it during `zeph setup`.
+
+## How It Works
+
+```
+You ──► Claude Code ──► does work ──► Stop Hook ──► zeph CLI ──► Push to phone
+                    ──► asks question ──► Ask Hook ──► zeph CLI ──► Push to phone
+                    ──► you say "알려줘" ──► MCP tool ──► Zeph API ──► Push to phone
+```
+
+Three layers:
+
+| Layer | Package | What it does | Reliability |
+|-------|---------|-------------|-------------|
+| **Hooks** | `@zeph-to/hook-sdk` (CLI) | Auto-fires on Claude events | 100% — no AI cooperation needed |
+| **MCP Server** | `@zeph-to/mcp-server` | AI-callable tools (notify, prompt, input...) | On request — AI must choose to call |
+| **Plugin** | `zeph-to/plugin` | Bundles hooks + MCP + behavior rules | Installed once |
+
+## Setup Details
+
+### `zeph setup` — Interactive Configuration
+
+```bash
+npx @zeph-to/hook-sdk setup
+```
+
+Prompts for:
+- **API Key** (required) — get from Zeph app > Settings > API Keys (MCP preset)
+- **Hook ID** (optional) — for `zeph_prompt`/`zeph_input`. Create at Settings > Developer > Hooks
+- **Base URL** (optional) — defaults to `https://api.zeph.to/v1`
+
+Saves to `~/.zeph/config.json`. All Zeph tools (CLI, MCP server, plugin hooks) read this file.
+
+### Priority: how credentials are resolved
+
+```
+--key flag  →  ZEPH_API_KEY env var  →  ~/.zeph/config.json
+```
+
+Environment variables override the config file. Flags override everything.
+
+## Other Agents
+
+### Gemini CLI
+
+```bash
+gemini mcp add zeph -- npx -y @zeph-to/mcp-server
+```
+
+### Cursor
+
+Add to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "zeph": {
+      "command": "npx",
+      "args": ["-y", "@zeph-to/mcp-server"],
+      "env": { "ZEPH_API_KEY": "ak_..." }
+    }
+  }
+}
+```
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json` (same format as Cursor).
+
+### Auto-detect all agents
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | bash
 ```
 
-Detects your installed agents and configures each one automatically.
+Detects installed agents and configures each one.
 
-**Manual (Claude Code only):**
+## CLI Reference
 
-```bash
-claude plugin marketplace add zeph-to/plugin
-claude plugin install zeph@zeph
-```
-
-**Manual (Gemini CLI):**
+The `zeph` CLI is also available standalone:
 
 ```bash
-gemini mcp add zeph -- npx -y @zeph-to/mcp-server
-gemini extensions install https://github.com/zeph-to/plugin
+npx @zeph-to/hook-sdk <command>
 ```
 
-## Configuration
+| Command | Description |
+|---------|-------------|
+| `setup` | Interactive configuration |
+| `notify --title "..." --body "..."` | Send a push |
+| `list [--limit 5] [--type note]` | List recent pushes |
+| `dismiss <push-id>` or `--all` | Dismiss pushes |
+| `test` | Verify connection |
 
-Set these environment variables (the installer will prompt you):
+## Agent Support Matrix
 
-```bash
-export ZEPH_API_KEY="ak_..."       # Required — get from Settings > API Keys
-export ZEPH_HOOK_ID="hook_..."     # Optional — for prompt/input features
-export ZEPH_BASE_URL="https://api.zeph.to/v1"  # Optional — default is prod
-```
+| Agent | Auto Hooks | MCP Tools | Install |
+|-------|:----------:|:---------:|---------|
+| Claude Code | Yes | Yes | Plugin |
+| Gemini CLI | — | Yes | `gemini mcp add` |
+| Cursor | — | Yes | mcp.json |
+| Windsurf | — | Yes | mcp_config.json |
+| Cline | — | — | Rule file |
+| GitHub Copilot | — | — | Instructions |
+| Codex | — | — | Hooks |
+| Aider | — | — | Config |
 
-Add to your shell profile (`~/.zshrc`, `~/.bashrc`, `~/.profile`, etc.) for persistence.
-
-Or run `/zeph:setup` inside Claude Code for guided configuration.
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ZEPH_API_KEY` | Yes | API key from Settings > API Keys (MCP preset) |
-| `ZEPH_HOOK_ID` | No | Hook ID for `zeph_prompt`/`zeph_input`. Create at Settings > Developer > Hooks |
-| `ZEPH_BASE_URL` | No | API base URL. Default: `https://api.zeph.to/v1`. Use `/d1` for dev |
-| `ZEPH_DEVICE_ID` | No | Target device. Omit to send to all devices |
-
-## Supported Agents
-
-| Agent | Auto Hooks | MCP Tools | Behavior Rules | Install Method |
-|-------|:----------:|:---------:|:--------------:|----------------|
-| Claude Code | ✓ | ✓ | ✓ | Plugin |
-| Gemini CLI | — | ✓ | ✓ | Extension + MCP |
-| Cursor | — | ✓ | ✓ | mcp.json + rule |
-| Windsurf | — | ✓ | ✓ | mcp_config.json + rule |
-| Cline | — | — | ✓ | Rule file (auto) |
-| GitHub Copilot | — | — | ✓ | Instructions |
-| Codex | — | — | ✓ | Hooks (auto) |
-| Aider | — | — | ✓ | Config (auto) |
-| Others (Zed, etc.) | — | — | ✓ | AGENTS.md |
-
-> Auto Hooks (Stop/AskUserQuestion) are Claude Code plugin only. Other agents get MCP tools and/or behavior rules.
-
-## How it works
-
-```
-┌─────────────────────────────────────────────────┐
-│ Claude Code Session                             │
-│                                                 │
-│  Hook: Stop ──────────► zeph CLI ──► Push       │
-│  Hook: AskUserQuestion ► zeph CLI ──► Push      │
-│  MCP: zeph_notify ─────► Zeph API ──► Push      │
-│  MCP: zeph_prompt ─────► Zeph API ──► Push+Wait │
-│  MCP: zeph_input ──────► Zeph API ──► Push+Wait │
-└─────────────────────────────────────────────────┘
-```
-
-1. **Hooks** (automatic) — Shell commands fire on Stop/AskUserQuestion events. Uses `zeph` CLI (`@zeph-to/hook-sdk`). Always works.
-2. **MCP server** (on request) — `@zeph-to/mcp-server` registers tools. Agent calls them voluntarily or when asked.
-3. **Behavior rules** (SKILL.md) — Tell the agent when to use tools. Soft guidance, not enforced.
-
-## Maintenance
-
-**Check for updates:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | bash -s -- --check-update
-```
-
-**Verify installation health:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | bash -s -- --verify
-```
+> Auto Hooks (completion/question alerts) are Claude Code only. Other agents get MCP tools.
 
 ## Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | bash -s -- --uninstall
+claude plugin uninstall zeph@zeph
+rm ~/.zeph/config.json
 ```
 
-Remove env vars (`ZEPH_API_KEY`, `ZEPH_HOOK_ID`) from your shell profile manually.
+Or remove from all agents:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | bash -s -- --uninstall
+```
 
 ## License
 
