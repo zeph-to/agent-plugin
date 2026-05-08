@@ -11,8 +11,9 @@ Works with Claude Code, Gemini CLI, Cursor, Windsurf, and more.
 claude plugin marketplace add zeph-to/plugin
 claude plugin install zeph@zeph
 
-# 2. Configure (interactive — saves to ~/.zeph/config.json)
-npx @zeph-to/hook-sdk setup
+# 2. Configure — pick one:
+npx @zeph-to/hook-sdk setup                              # interactive
+npx @zeph-to/hook-sdk setup --key ak_... --hook hook_... # non-interactive (from Zeph app)
 ```
 
 That's it. Restart Claude Code and you'll start getting notifications.
