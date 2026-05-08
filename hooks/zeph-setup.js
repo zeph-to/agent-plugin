@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 'use strict';
 
-const apiKey = process.env.ZEPH_API_KEY;
-const hookId = process.env.ZEPH_HOOK_ID;
+const fs = require('fs');
+const path = require('path');
+
+// Load API key: env var → config file
+const configFile = path.join(process.env.HOME || '~', '.zeph', 'config.json');
+let config = {};
+try { config = JSON.parse(fs.readFileSync(configFile, 'utf-8')); } catch {}
+
+const apiKey = process.env.ZEPH_API_KEY || config.apiKey;
+const hookId = process.env.ZEPH_HOOK_ID || config.hookId;
 
 if (!apiKey) {
-  process.stdout.write('Zeph: ZEPH_API_KEY not set. Run /zeph:setup for guided configuration.');
+  process.stdout.write('Zeph: not configured. Run "npx @zeph-to/hook-sdk setup" to set up API key and start receiving notifications.');
   process.exit(0);
 }
 
