@@ -28,35 +28,80 @@ That's it. Restart Claude Code and you'll start getting notifications.
 
 These use hooks — shell commands that fire on Claude events. 100% reliable.
 
-### On request — ask Claude to use them
+### On request — Claude calls when appropriate
 
-| Tool | What it does | How to trigger |
-|------|-------------|----------------|
-| `zeph_notify` | Push notification | "끝나면 zeph으로 알려줘" |
-| `zeph_prompt` | Pick from options (mobile-answerable) | "zeph_prompt로 물어봐" |
-| `zeph_input` | Free-form text input (mobile-answerable) | "zeph_input으로 받아" |
-| `zeph_clipboard` | Copy to clipboard | "클립보드에 복사해줘" |
-| `zeph_file` | Send a file | "파일로 보내줘" |
+With `ZEPH_HOOK_ID` configured, Claude prefers `zeph_prompt` for decisions and `zeph_input` for text input. You can answer from your phone without returning to the terminal.
 
-These use MCP tools. Claude calls them when asked (or sometimes voluntarily).
+| Tool | What it does | When Claude uses it |
+|------|-------------|---------------------|
+| `zeph_prompt` | Pick from 2-4 options | Decisions, confirmations, next steps |
+| `zeph_input` | Free-form text input | Commit messages, descriptions, values |
+| `zeph_notify` | Manual push notification | When explicitly asked |
+| `zeph_clipboard` | Copy to clipboard | When explicitly asked |
+| `zeph_file` | Send a file | When explicitly asked |
 
 > `zeph_prompt` and `zeph_input` require `ZEPH_HOOK_ID` — enter it during `zeph setup`.
 
 ## How It Works
 
+### Session Flow
+
 ```
-You ──► Claude Code ──► does work ──► Stop Hook ──► zeph CLI ──► Push to phone
-                    ──► asks question ──► Ask Hook ──► zeph CLI ──► Push to phone
-                    ──► you say "알려줘" ──► MCP tool ──► Zeph API ──► Push to phone
+SessionStart hook
+  ├─ ~/.zeph/config.json 읽기
+  ├─ HOOK_ID 있음 → prompt/input 규칙 주입
+  └─ HOOK_ID 없음 → notify only 규칙 주입
+
+Working...
+  │
+  ├─ 선택지 필요 → zeph_prompt → 모바일에서 터치 응답
+  │   "시뮬+로컬" 선택 → Claude 이어서 작업
+  │
+  ├─ 텍스트 필요 → zeph_input → 모바일에서 입력
+  │   "커밋 메시지 입력" → Claude가 사용
+  │
+  ├─ 복잡한 질문 → AskUserQuestion → Ask hook 자동 push
+  │   "Xcode 로그 보이는지?" → 모바일 알림 → 터미널로 이동
+  │
+  └─ 작업 완료
+      └─ Stop hook → transcript 파싱 → push: 응답 요약
 ```
 
-Three layers:
+### Notification Summary
+
+| Event | Source | Reliability | Duplicates |
+|-------|--------|-------------|------------|
+| Task completed | Stop hook | 100% | No (notify rule removed) |
+| Question asked | Ask hook | 100% | No |
+| Decision needed | MCP zeph_prompt | ~80% | No |
+| Text input needed | MCP zeph_input | ~80% | No |
+| Manual notification | MCP zeph_notify | On request | No |
+
+### Three Layers
+
+```
+zeph-to/plugin (Claude Code plugin)
+  ├─ hooks/zeph-setup.js    → SessionStart: 규칙 주입
+  ├─ hooks/zeph-stop.sh     → Stop: 자동 완료 알림
+  ├─ hooks/zeph-ask.sh      → PreToolUse: 질문 알림
+  ├─ .mcp.json              → MCP server 등록
+  └─ uses:
+      ├─ @zeph-to/hook-sdk     → CLI (notify/list/dismiss/test/setup)
+      └─ @zeph-to/mcp-server   → MCP tools (prompt/input/clipboard/file...)
+```
 
 | Layer | Package | What it does | Reliability |
 |-------|---------|-------------|-------------|
 | **Hooks** | `@zeph-to/hook-sdk` (CLI) | Auto-fires on Claude events | 100% — no AI cooperation needed |
-| **MCP Server** | `@zeph-to/mcp-server` | AI-callable tools (notify, prompt, input...) | On request — AI must choose to call |
+| **MCP Server** | `@zeph-to/mcp-server` | AI-callable tools (prompt, input...) | Depends on AI following rules |
 | **Plugin** | `zeph-to/plugin` | Bundles hooks + MCP + behavior rules | Installed once |
+
+### Config Priority
+
+```
+--key flag  →  ZEPH_API_KEY env var  →  ~/.zeph/config.json
+    (CLI)         (shell)               (zeph setup)
+```
 
 ## Setup Details
 
@@ -72,14 +117,6 @@ Prompts for:
 - **Base URL** (optional) — defaults to `https://api.zeph.to/v1`
 
 Saves to `~/.zeph/config.json`. All Zeph tools (CLI, MCP server, plugin hooks) read this file.
-
-### Priority: how credentials are resolved
-
-```
---key flag  →  ZEPH_API_KEY env var  →  ~/.zeph/config.json
-```
-
-Environment variables override the config file. Flags override everything.
 
 ## Other Agents
 
@@ -118,8 +155,6 @@ curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | ba
 Detects installed agents and configures each one.
 
 ## CLI Reference
-
-The `zeph` CLI is also available standalone:
 
 ```bash
 npx @zeph-to/hook-sdk <command>
