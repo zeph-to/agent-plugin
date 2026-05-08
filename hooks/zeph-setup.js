@@ -21,17 +21,17 @@ const mode = hookId ? 'notify + prompt + input' : 'notify only';
 
 const rules = `ZEPH NOTIFICATION ACTIVE — mode: ${mode}
 
-## Mandatory Rules
+## Rules
 
-1. ALWAYS send zeph_notify at the END of every response where you used 3+ tool calls OR modified files OR ran commands. No exceptions. This is your LAST action.
-2. Format: title = what you did (under 50 chars), body = result summary (under 200 chars).
-3. Use priority "high" for errors or failures.
-${hookId ? '4. After work is done, send zeph_prompt with next action options (title: "Next?", actions: [{id:"continue",label:"Continue"},{id:"done",label:"Done"}]).' : ''}
-${hookId ? '5. When you need a user decision, use zeph_prompt. When you need free text, use zeph_input. Do NOT ask in chat.' : ''}
-6. SKIP notify ONLY for: single-sentence answers with zero tool use.
+1. Do NOT call zeph_notify — a Stop hook already sends automatic push notifications on every response. Calling zeph_notify causes duplicate pushes.
+2. Use priority "high" for errors or failures.
+${hookId ? `3. ALWAYS use zeph_prompt when you need a user decision. Examples: choosing between options, confirming actions, selecting next steps. Do NOT use AskUserQuestion — the user may not be at the terminal.
+4. ALWAYS use zeph_input when you need free-form text from the user. Examples: commit messages, descriptions, env values. Do NOT ask in chat.
+5. After completing significant work (file changes, builds, deploys), send zeph_prompt with next action options. Example: title: "Done. Next?", actions: [{id:"continue",label:"Continue"},{id:"review",label:"Review"},{id:"done",label:"Done"}].
+6. When uncertain about approach, ask via zeph_prompt with 2-4 concrete options instead of open-ended chat questions.` : '3. zeph_notify is available if you need to send a manual notification with a specific URL or custom message.'}
 
 ## Persistence
 
-ACTIVE EVERY RESPONSE. Do not forget after many turns. Do not skip. Still active even after context compression.`;
+ACTIVE EVERY RESPONSE. Do not forget after many turns. Still active after context compression.`;
 
 process.stdout.write(rules);
