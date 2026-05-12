@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "description": "AI agent notifications via Zeph — notify, prompt, input across devices",
   "author": {
-    "name": "tak-bro",
-    "url": "https://github.com/tak-bro"
+    "name": "zeph-to",
+    "url": "https://github.com/zeph-to"
   },
-  "repository": "https://github.com/zeph-to/plugin",
+  "repository": "https://github.com/zeph-to/agent-plugin",
   "license": "MIT",
   "keywords": ["zeph", "notification", "push", "mcp", "prompt"],
   "mcpServers": "./.mcp.json",

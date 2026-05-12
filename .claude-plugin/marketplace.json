@@ -3,8 +3,8 @@
   "name": "zeph",
   "description": "AI agent notifications via Zeph — send push notifications, request decisions, and collect input from users across devices.",
   "owner": {
-    "name": "tak-bro",
-    "url": "https://github.com/tak-bro"
+    "name": "zeph-to",
+    "url": "https://github.com/zeph-to"
   },
   "plugins": [
     {

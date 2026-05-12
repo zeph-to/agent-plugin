@@ -8,7 +8,7 @@ Works with Claude Code, Gemini CLI, Cursor, Windsurf, and more.
 
 ```bash
 # 1. Install plugin
-claude plugin marketplace add zeph-to/plugin
+claude plugin marketplace add zeph-to/agent-plugin
 claude plugin install zeph@zeph
 
 # 2. Configure — pick one:
@@ -81,7 +81,7 @@ Working...
 ### Three Layers
 
 ```
-zeph-to/plugin (Claude Code plugin)
+zeph-to/agent-plugin (Claude Code plugin)
   ├─ hooks/zeph-setup.js    → SessionStart: 규칙 주입
   ├─ hooks/zeph-stop.sh     → Stop: 자동 완료 알림
   ├─ hooks/zeph-ask.sh      → PreToolUse: 질문 알림
@@ -95,7 +95,7 @@ zeph-to/plugin (Claude Code plugin)
 |-------|---------|-------------|-------------|
 | **Hooks** | `@zeph-to/hook-sdk` (CLI) | Auto-fires on Claude events | 100% — no AI cooperation needed |
 | **MCP Server** | `@zeph-to/mcp-server` | AI-callable tools (prompt, input...) | Depends on AI following rules |
-| **Plugin** | `zeph-to/plugin` | Bundles hooks + MCP + behavior rules | Installed once |
+| **Plugin** | `zeph-to/agent-plugin` | Bundles hooks + MCP + behavior rules | Installed once |
 
 ### Config Priority
 
@@ -150,7 +150,7 @@ Add to `~/.codeium/windsurf/mcp_config.json` (same format as Cursor).
 ### Auto-detect all agents
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zeph-to/agent-plugin/main/install.sh | bash
 ```
 
 Detects installed agents and configures each one.
@@ -194,7 +194,7 @@ rm ~/.zeph/config.json
 Or remove from all agents:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | bash -s -- --uninstall
+curl -fsSL https://raw.githubusercontent.com/zeph-to/agent-plugin/main/install.sh | bash -s -- --uninstall
 ```
 
 ## License
