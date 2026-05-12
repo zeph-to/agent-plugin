@@ -28,4 +28,4 @@ if [ -n "$SUMMARY" ] && [ "$SUMMARY" != "null" ]; then
   BODY="$SUMMARY"
 fi
 
-zeph notify --title "Claude: $PROJECT" --body "$BODY" 2>/dev/null || true
+zeph notify --title "Claude: $PROJECT" --body "$BODY" --type hook 2>/dev/null || true
