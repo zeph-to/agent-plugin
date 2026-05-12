@@ -12,8 +12,8 @@ claude plugin marketplace add zeph-to/agent-plugin
 claude plugin install zeph@zeph
 
 # 2. Configure — pick one:
-npx @zeph-to/hook-sdk setup                              # interactive
-npx @zeph-to/hook-sdk setup --key ak_... --hook hook_... # non-interactive (from Zeph app)
+npx @zeph-to/hook-sdk install                              # interactive
+npx @zeph-to/hook-sdk install --key ak_... --hook hook_... # non-interactive (from Zeph app)
 ```
 
 That's it. Restart Claude Code and you'll start getting notifications.
@@ -41,7 +41,7 @@ With `ZEPH_HOOK_ID` configured, Claude prefers `zeph_prompt` for decisions and `
 | `zeph_clipboard` | Copy to clipboard | When explicitly asked |
 | `zeph_file` | Send a file | When explicitly asked |
 
-> `zeph_prompt` and `zeph_input` require `ZEPH_HOOK_ID` — enter it during `zeph setup`.
+> `zeph_prompt` and `zeph_input` require `ZEPH_HOOK_ID` — enter it during `zeph install`.
 
 ## How It Works
 
@@ -106,16 +106,16 @@ zeph-to/agent-plugin (Claude Code plugin)
 
 ## Setup Details
 
-### `zeph setup` — Interactive Configuration
+### `zeph install` — One-Command Setup
 
 ```bash
-npx @zeph-to/hook-sdk setup
+npx @zeph-to/hook-sdk install
 ```
 
-Prompts for:
+Detects installed agents, prompts for credentials, installs hooks + MCP + rules for each agent.
+
 - **API Key** (required) — get from Zeph app > Settings > API Keys (MCP preset)
 - **Hook ID** (optional) — for `zeph_prompt`/`zeph_input`. Create at Settings > Developer > Hooks
-- **Base URL** (optional) — defaults to `https://api.zeph.to/v1`
 
 Saves to `~/.zeph/config.json`. All Zeph tools (CLI, MCP server, plugin hooks) read this file.
 
@@ -163,7 +163,7 @@ npx @zeph-to/hook-sdk <command>
 
 | Command | Description |
 |---------|-------------|
-| `setup` | Interactive configuration |
+| `install` | One-command setup for all agents |
 | `notify --title "..." --body "..."` | Send a push |
 | `list [--limit 5] [--type note]` | List recent pushes |
 | `dismiss <push-id>` or `--all` | Dismiss pushes |
@@ -171,18 +171,18 @@ npx @zeph-to/hook-sdk <command>
 
 ## Agent Support Matrix
 
-| Agent | Auto Hooks | MCP Tools | Install |
-|-------|:----------:|:---------:|---------|
-| Claude Code | Yes | Yes | Plugin |
-| Gemini CLI | — | Yes | `gemini mcp add` |
-| Cursor | — | Yes | mcp.json |
-| Windsurf | — | Yes | mcp_config.json |
-| Cline | — | — | Rule file |
-| GitHub Copilot | — | — | Instructions |
-| Codex | — | — | Hooks |
-| Aider | — | — | Config |
+| Agent | Auto Notify | MCP Tools | How |
+|-------|:-----------:|:---------:|-----|
+| Claude Code | Yes (Stop hook) | Yes | Plugin |
+| Cursor | Yes (stop hook) | Yes | MCP + hook + rules |
+| Windsurf | Yes (response hook) | Yes | MCP + hook |
+| Gemini CLI | Yes (AfterAgent hook) | Yes | MCP + hook |
+| Codex CLI | Yes (Stop hook) | — | Hook |
+| Copilot CLI | Yes (sessionEnd hook) | — | Hook |
+| Cline | LLM-based | — | Rules file |
+| Aider | LLM-based | — | Config |
 
-> Auto Hooks (completion/question alerts) are Claude Code only. Other agents get MCP tools.
+All agents get auto-notifications via `npx @zeph-to/hook-sdk install`.
 
 ## Uninstall
 
