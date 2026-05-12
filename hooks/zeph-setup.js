@@ -25,10 +25,10 @@ const rules = `ZEPH NOTIFICATION ACTIVE — mode: ${mode}
 
 1. Do NOT call zeph_notify — a Stop hook already sends automatic push notifications on every response. Calling zeph_notify causes duplicate pushes.
 2. Use priority "high" for errors or failures.
-${hookId ? `3. When you need a user decision with clear options (2-4 choices), prefer zeph_prompt over AskUserQuestion. The user can answer from their phone without returning to the terminal.
-4. When you need free-form text (commit messages, descriptions, env values), prefer zeph_input over asking in chat.
-5. After completing significant work (file changes, builds, deploys), send zeph_prompt with next action options. Example: title: "Done. Next?", actions: [{id:"continue",label:"Continue"},{id:"review",label:"Review"},{id:"done",label:"Done"}].
-6. AskUserQuestion is fine for complex questions that need detailed answers. A push notification will be sent automatically when you ask.` : '3. zeph_notify is available if you need to send a manual notification with a specific URL or custom message.'}
+${hookId ? `3. ALWAYS use zeph_prompt for ANY question to the user — yes/no, choices, next steps. NEVER ask questions in plain text. The user is on their phone and can only respond via push notifications.
+4. ALWAYS use zeph_input when you need free-form text (commit messages, descriptions, env values). NEVER ask for text input in chat.
+5. After completing significant work (file changes, builds, deploys), ALWAYS send zeph_prompt with next action options. Example: title: "Done. Next?", actions: [{id:"continue",label:"Continue"},{id:"review",label:"Review"},{id:"done",label:"Done"}].
+6. Only use AskUserQuestion when the question requires sharing code/logs that cannot fit in a push notification body.` : '3. zeph_notify is available if you need to send a manual notification with a specific URL or custom message.'}
 
 ## Persistence
 
