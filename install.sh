@@ -108,6 +108,7 @@ HAS_CURSOR=0
 HAS_WINDSURF=0
 HAS_CLINE=0
 HAS_CODEX=0
+HAS_COPILOT=0
 HAS_AIDER=0
 
 command -v claude >/dev/null 2>&1 && HAS_CLAUDE=1
@@ -116,6 +117,7 @@ command -v gemini >/dev/null 2>&1 && HAS_GEMINI=1
 [ -d "$HOME/.codeium" ] && HAS_WINDSURF=1
 { command -v cline >/dev/null 2>&1 || [ -d "$HOME/.cline" ]; } && HAS_CLINE=1
 command -v codex >/dev/null 2>&1 && HAS_CODEX=1
+[ -d "$HOME/.copilot" ] && HAS_COPILOT=1
 command -v aider >/dev/null 2>&1 && HAS_AIDER=1
 
 [ $HAS_CLAUDE -eq 1 ]   && ok "Claude Code"   || skip "Claude Code — not found"
@@ -124,6 +126,7 @@ command -v aider >/dev/null 2>&1 && HAS_AIDER=1
 [ $HAS_WINDSURF -eq 1 ] && ok "Windsurf IDE"  || skip "Windsurf — not found"
 [ $HAS_CLINE -eq 1 ]    && ok "Cline"         || skip "Cline — not found"
 [ $HAS_CODEX -eq 1 ]    && ok "Codex CLI"     || skip "Codex CLI — not found"
+[ $HAS_COPILOT -eq 1 ]  && ok "Copilot CLI"   || skip "Copilot CLI — not found"
 [ $HAS_AIDER -eq 1 ]    && ok "Aider"         || skip "Aider — not found"
 
 # ── Verify ─────────────────────────────────────────────────────────────────
@@ -275,9 +278,24 @@ if [ $HAS_GEMINI -eq 1 ] && should_install "gemini"; then
   if [ $DRY -eq 0 ]; then
     gemini mcp add zeph -- npx -y @zeph-to/mcp-server 2>/dev/null && ok "MCP server added" || ok "MCP already configured"
     gemini extensions install "https://github.com/$REPO" 2>/dev/null && ok "Extension installed" || ok "Extension already installed"
+    # AfterAgent hook for auto-notifications
+    if command -v python3 >/dev/null 2>&1; then
+      python3 -c "
+import json, os
+f = os.path.expanduser('~/.gemini/settings.json')
+d = {}
+if os.path.exists(f):
+    try: d = json.load(open(f))
+    except: pass
+d.setdefault('hooks', {})
+d['hooks']['AfterAgent'] = [{'matcher': '*', 'hooks': [{'name': 'zeph-notify', 'type': 'command', 'command': 'npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true'}]}]
+d['hooksConfig'] = {'enabled': True}
+os.makedirs(os.path.dirname(f), exist_ok=True)
+json.dump(d, open(f, 'w'), indent=2)
+" && ok "AfterAgent hook added"
+    fi
   else
-    echo "  [dry-run] gemini mcp add zeph -- npx -y @zeph-to/mcp-server"
-    echo "  [dry-run] gemini extensions install https://github.com/$REPO"
+    echo "  [dry-run] gemini mcp add + hooks"
   fi
 fi
 
@@ -285,12 +303,22 @@ fi
 if [ $HAS_CURSOR -eq 1 ] && should_install "cursor"; then
   echo -e "📦 Installing for Cursor..."
   if [ $DRY -eq 0 ]; then
-    inject_mcp_json "$HOME/.cursor/mcp.json" && ok "MCP server added to ~/.cursor/mcp.json"
+    inject_mcp_json "$HOME/.cursor/mcp.json" && ok "MCP server added"
     mkdir -p "$HOME/.cursor/rules"
     curl -fsSL "$RAW_BASE/.cursor/rules/zeph.mdc" -o "$HOME/.cursor/rules/zeph.mdc" 2>/dev/null && ok "Rule file written" || fail "Failed to download rule file"
+    # Stop hook for auto-notifications
+    cat > "$HOME/.cursor/hooks.json" <<'CURSOR_HOOKS'
+{
+  "version": 1,
+  "hooks": {
+    "stop": [{ "command": "npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true" }]
+  }
+}
+CURSOR_HOOKS
+    ok "Stop hook added"
   else
     echo "  [dry-run] Inject zeph into ~/.cursor/mcp.json"
-    echo "  [dry-run] Write ~/.cursor/rules/zeph.mdc"
+    echo "  [dry-run] Write ~/.cursor/rules/zeph.mdc + hooks.json"
   fi
 fi
 
@@ -298,12 +326,22 @@ fi
 if [ $HAS_WINDSURF -eq 1 ] && should_install "windsurf"; then
   echo -e "📦 Installing for Windsurf..."
   if [ $DRY -eq 0 ]; then
-    inject_mcp_json "$HOME/.codeium/windsurf/mcp_config.json" && ok "MCP server added to mcp_config.json"
+    inject_mcp_json "$HOME/.codeium/windsurf/mcp_config.json" && ok "MCP server added"
     mkdir -p "$HOME/.windsurf/rules"
     curl -fsSL "$RAW_BASE/.windsurf/rules/zeph.md" -o "$HOME/.windsurf/rules/zeph.md" 2>/dev/null && ok "Rule file written" || fail "Failed to download rule file"
+    # Response hook for auto-notifications
+    mkdir -p "$HOME/.codeium/windsurf"
+    cat > "$HOME/.codeium/windsurf/hooks.json" <<'WINDSURF_HOOKS'
+{
+  "hooks": {
+    "post_cascade_response": [{ "command": "npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true", "show_output": false }]
+  }
+}
+WINDSURF_HOOKS
+    ok "Response hook added"
   else
     echo "  [dry-run] Inject zeph into ~/.codeium/windsurf/mcp_config.json"
-    echo "  [dry-run] Write ~/.windsurf/rules/zeph.md"
+    echo "  [dry-run] Write windsurf rules + hooks"
   fi
 fi
 
@@ -323,9 +361,36 @@ if [ $HAS_CODEX -eq 1 ] && should_install "codex"; then
   echo -e "📦 Installing for Codex CLI..."
   if [ $DRY -eq 0 ]; then
     mkdir -p "$HOME/.codex"
-    curl -fsSL "$RAW_BASE/.codex/hooks.json" -o "$HOME/.codex/hooks.json" 2>/dev/null && ok "Hooks config written" || fail "Failed to download hooks config"
+    cat > "$HOME/.codex/hooks.json" <<'CODEX_HOOKS'
+{
+  "version": 1,
+  "hooks": {
+    "Stop": [{ "type": "command", "bash": "npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true" }]
+  }
+}
+CODEX_HOOKS
+    ok "Stop hook added"
   else
     echo "  [dry-run] Write ~/.codex/hooks.json"
+  fi
+fi
+
+# Copilot CLI
+if [ $HAS_COPILOT -eq 1 ] && should_install "copilot"; then
+  echo -e "📦 Installing for Copilot CLI..."
+  if [ $DRY -eq 0 ]; then
+    mkdir -p "$HOME/.copilot/hooks"
+    cat > "$HOME/.copilot/hooks/zeph.json" <<'COPILOT_HOOKS'
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [{ "type": "command", "bash": "npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true", "timeoutSec": 10 }]
+  }
+}
+COPILOT_HOOKS
+    ok "Session end hook added"
+  else
+    echo "  [dry-run] Write ~/.copilot/hooks/zeph.json"
   fi
 fi
 
