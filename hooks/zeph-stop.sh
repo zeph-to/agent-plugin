@@ -21,7 +21,7 @@ BRANCH=$(git -C "$CLAUDE_PROJECT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null ||
 # Extract last assistant text using jq
 SUMMARY=$(tac "$TRANSCRIPT" 2>/dev/null \
   | grep -m1 '"end_turn"' \
-  | jq -r '[.message.content[] | select(.type=="text") | .text] | join(" ") | .[0:200]' 2>/dev/null)
+  | jq -r '[.message.content[] | select(.type=="text") | .text] | join(" ") | .[0:5000]' 2>/dev/null)
 
 BODY="${BRANCH} — ${TOOL_COUNT} tools"
 if [ -n "$SUMMARY" ] && [ "$SUMMARY" != "null" ]; then
