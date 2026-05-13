@@ -1,8 +1,13 @@
-description = "Configure Zeph API key and Hook ID for AI agent notifications"
-prompt = """
+---
+name: zeph-setup
+description: >
+  Configure Zeph API key and Hook ID for AI agent notifications.
+  Guides through key creation, environment variable setup, and verification.
+---
+
 Help the user set up Zeph notifications. Follow these steps:
 
-1. Check if ZEPH_API_KEY is already set (echo $ZEPH_API_KEY). If set, confirm it works.
+1. Check if ZEPH_API_KEY is already set (`echo $ZEPH_API_KEY`). If set, confirm it works.
 
 2. If not set, guide them:
    - Go to Zeph web app → Settings → API Keys
@@ -15,10 +20,11 @@ Help the user set up Zeph notifications. Follow these steps:
    - Copy the Hook ID (starts with hook_...)
 
 4. Help them persist the env vars. Add to their shell profile:
+   ```bash
    export ZEPH_API_KEY="ak_..."
    export ZEPH_HOOK_ID="hook_..."  # optional
+   ```
 
-5. Verify by running: source ~/.zshrc && echo $ZEPH_API_KEY
+5. Verify by running: `source ~/.zshrc && echo $ZEPH_API_KEY`
 
 6. Send a test notification using zeph_notify to confirm everything works.
-"""
