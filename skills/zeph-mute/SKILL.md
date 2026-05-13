@@ -10,7 +10,7 @@ Mute Zeph notifications for this session.
 Run this bash command:
 
 ```bash
-HASH=$(echo -n "$CLAUDE_PROJECT_DIR" | cksum | cut -d' ' -f1)
+HASH=$(echo -n "${CLAUDE_PROJECT_DIR:-$(pwd)}" | cksum | cut -d' ' -f1)
 touch "/tmp/zeph-muted-$HASH"
 ```
 

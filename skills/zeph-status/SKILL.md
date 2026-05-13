@@ -10,7 +10,7 @@ Check Zeph mute status.
 Run this bash command:
 
 ```bash
-HASH=$(echo -n "$CLAUDE_PROJECT_DIR" | cksum | cut -d' ' -f1)
+HASH=$(echo -n "${CLAUDE_PROJECT_DIR:-$(pwd)}" | cksum | cut -d' ' -f1)
 if [ -f "/tmp/zeph-muted-$HASH" ]; then echo "MUTED"; else echo "ACTIVE"; fi
 ```
 
