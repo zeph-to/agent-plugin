@@ -1,1 +1,0 @@
-@./skills/zeph/SKILL.md

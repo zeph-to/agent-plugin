@@ -15,8 +15,6 @@
 set -euo pipefail
 
 REPO="zeph-to/plugin"
-RAW_BASE="https://raw.githubusercontent.com/$REPO/main"
-
 # ── Flags ──────────────────────────────────────────────────────────────────
 DRY=0
 UNINSTALL=0
@@ -81,7 +79,21 @@ json.dump(d, open(f, 'w'), indent=2)
 "
 }
 
-LOCAL_VERSION="0.1.0"
+LOCAL_VERSION="0.4.0"
+
+# ── Skills CLI Helper ─────────────────────────────────────────────────────
+install_skills() {
+  local agents_flag="$1"
+  if command -v npx >/dev/null 2>&1; then
+    if [ $DRY -eq 0 ]; then
+      npx -y skills add "$REPO" -g -a "$agents_flag" -y 2>/dev/null && ok "Skills installed ($agents_flag)" || skip "Skills CLI unavailable — skipping skill install"
+    else
+      echo "  [dry-run] npx skills add $REPO -g -a $agents_flag -y"
+    fi
+  else
+    skip "npx not found — skipping skill install for $agents_flag"
+  fi
+}
 
 # ── Check Update ──────────────────────────────────────────────────────────
 if [ $CHECK_UPDATE -eq 1 ]; then
@@ -242,11 +254,20 @@ except: pass
   [ $HAS_CURSOR -eq 1 ] && remove_mcp_json "$HOME/.cursor/mcp.json" "Cursor"
   [ $HAS_WINDSURF -eq 1 ] && remove_mcp_json "$HOME/.codeium/windsurf/mcp_config.json" "Windsurf"
 
-  # Remove rule/config files
-  [ -f "$HOME/.cursor/rules/zeph.mdc" ] && rm "$HOME/.cursor/rules/zeph.mdc" && ok "Cursor: rule removed"
-  [ -f "$HOME/.windsurf/rules/zeph.md" ] && rm "$HOME/.windsurf/rules/zeph.md" && ok "Windsurf: rule removed"
-  [ -f "$HOME/.cline/rules/zeph.md" ] && rm "$HOME/.cline/rules/zeph.md" && ok "Cline: rule removed"
+  # Remove legacy rule/config files
+  [ -f "$HOME/.cursor/rules/zeph.mdc" ] && rm "$HOME/.cursor/rules/zeph.mdc" && ok "Cursor: legacy rule removed"
+  [ -f "$HOME/.windsurf/rules/zeph.md" ] && rm "$HOME/.windsurf/rules/zeph.md" && ok "Windsurf: legacy rule removed"
+  [ -f "$HOME/.cline/rules/zeph.md" ] && rm "$HOME/.cline/rules/zeph.md" && ok "Cline: legacy rule removed"
   [ -f "$HOME/.codex/hooks.json" ] && rm "$HOME/.codex/hooks.json" && ok "Codex: hooks removed"
+
+  # Remove skills (installed via skills CLI)
+  for base in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.cursor/skills" "$HOME/.codeium/windsurf/skills" "$HOME/.gemini/skills"; do
+    [ -d "$base" ] || continue
+    for dir in "$base"/zeph*; do
+      [ -e "$dir" ] || [ -L "$dir" ] || continue
+      rm -rf "$dir" && ok "Skill removed: $(basename "$dir")"
+    done
+  done
 
   if [ -f "$HOME/.aider.conf.yml" ] && grep -q "# Added by Zeph" "$HOME/.aider.conf.yml" 2>/dev/null; then
     sed -i.bak '/# Added by Zeph/,/^$/d' "$HOME/.aider.conf.yml" && rm -f "$HOME/.aider.conf.yml.bak"
@@ -275,9 +296,9 @@ fi
 # Gemini CLI
 if [ $HAS_GEMINI -eq 1 ] && should_install "gemini"; then
   echo -e "📦 Installing for Gemini CLI..."
+  install_skills "gemini-cli"
   if [ $DRY -eq 0 ]; then
     gemini mcp add zeph -- npx -y @zeph-to/mcp-server 2>/dev/null && ok "MCP server added" || ok "MCP already configured"
-    gemini extensions install "https://github.com/$REPO" 2>/dev/null && ok "Extension installed" || ok "Extension already installed"
     # AfterAgent hook for auto-notifications
     if command -v python3 >/dev/null 2>&1; then
       python3 -c "
@@ -302,11 +323,9 @@ fi
 # Cursor
 if [ $HAS_CURSOR -eq 1 ] && should_install "cursor"; then
   echo -e "📦 Installing for Cursor..."
+  install_skills "cursor"
   if [ $DRY -eq 0 ]; then
     inject_mcp_json "$HOME/.cursor/mcp.json" && ok "MCP server added"
-    mkdir -p "$HOME/.cursor/rules"
-    curl -fsSL "$RAW_BASE/.cursor/rules/zeph.mdc" -o "$HOME/.cursor/rules/zeph.mdc" 2>/dev/null && ok "Rule file written" || fail "Failed to download rule file"
-    # Stop hook for auto-notifications
     cat > "$HOME/.cursor/hooks.json" <<'CURSOR_HOOKS'
 {
   "version": 1,
@@ -317,19 +336,16 @@ if [ $HAS_CURSOR -eq 1 ] && should_install "cursor"; then
 CURSOR_HOOKS
     ok "Stop hook added"
   else
-    echo "  [dry-run] Inject zeph into ~/.cursor/mcp.json"
-    echo "  [dry-run] Write ~/.cursor/rules/zeph.mdc + hooks.json"
+    echo "  [dry-run] Inject zeph into ~/.cursor/mcp.json + hooks.json"
   fi
 fi
 
 # Windsurf
 if [ $HAS_WINDSURF -eq 1 ] && should_install "windsurf"; then
   echo -e "📦 Installing for Windsurf..."
+  install_skills "windsurf"
   if [ $DRY -eq 0 ]; then
     inject_mcp_json "$HOME/.codeium/windsurf/mcp_config.json" && ok "MCP server added"
-    mkdir -p "$HOME/.windsurf/rules"
-    curl -fsSL "$RAW_BASE/.windsurf/rules/zeph.md" -o "$HOME/.windsurf/rules/zeph.md" 2>/dev/null && ok "Rule file written" || fail "Failed to download rule file"
-    # Response hook for auto-notifications
     mkdir -p "$HOME/.codeium/windsurf"
     cat > "$HOME/.codeium/windsurf/hooks.json" <<'WINDSURF_HOOKS'
 {
@@ -340,25 +356,20 @@ if [ $HAS_WINDSURF -eq 1 ] && should_install "windsurf"; then
 WINDSURF_HOOKS
     ok "Response hook added"
   else
-    echo "  [dry-run] Inject zeph into ~/.codeium/windsurf/mcp_config.json"
-    echo "  [dry-run] Write windsurf rules + hooks"
+    echo "  [dry-run] Inject zeph into ~/.codeium/windsurf/mcp_config.json + hooks"
   fi
 fi
 
 # Cline
 if [ $HAS_CLINE -eq 1 ] && should_install "cline"; then
   echo -e "📦 Installing for Cline..."
-  if [ $DRY -eq 0 ]; then
-    mkdir -p "$HOME/.cline/rules"
-    curl -fsSL "$RAW_BASE/.clinerules/zeph.md" -o "$HOME/.cline/rules/zeph.md" 2>/dev/null && ok "Rule file written" || fail "Failed to download rule file"
-  else
-    echo "  [dry-run] Write ~/.cline/rules/zeph.md"
-  fi
+  install_skills "cline"
 fi
 
 # Codex CLI
 if [ $HAS_CODEX -eq 1 ] && should_install "codex"; then
   echo -e "📦 Installing for Codex CLI..."
+  install_skills "codex"
   if [ $DRY -eq 0 ]; then
     mkdir -p "$HOME/.codex"
     cat > "$HOME/.codex/hooks.json" <<'CODEX_HOOKS'
@@ -378,6 +389,7 @@ fi
 # Copilot CLI
 if [ $HAS_COPILOT -eq 1 ] && should_install "copilot"; then
   echo -e "📦 Installing for Copilot CLI..."
+  install_skills "github-copilot"
   if [ $DRY -eq 0 ]; then
     mkdir -p "$HOME/.copilot/hooks"
     cat > "$HOME/.copilot/hooks/zeph.json" <<'COPILOT_HOOKS'
@@ -397,21 +409,7 @@ fi
 # Aider
 if [ $HAS_AIDER -eq 1 ] && should_install "aider"; then
   echo -e "📦 Installing for Aider..."
-  AIDER_CONF="$HOME/.aider.conf.yml"
-  if [ $DRY -eq 0 ]; then
-    if [ ! -f "$AIDER_CONF" ] || ! grep -q "zeph" "$AIDER_CONF" 2>/dev/null; then
-      cat >> "$AIDER_CONF" <<'AIDER_EOF'
-
-# Added by Zeph
-read: AGENTS.md
-AIDER_EOF
-      ok "Aider config updated ($AIDER_CONF)"
-    else
-      ok "Aider: zeph already configured"
-    fi
-  else
-    echo "  [dry-run] Append zeph config to $AIDER_CONF"
-  fi
+  install_skills "universal"
 fi
 
 # ── API Key Configuration ──────────────────────────────────────────────────
