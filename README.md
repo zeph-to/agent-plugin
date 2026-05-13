@@ -133,6 +133,14 @@ Saves to `~/.zeph/config.json`. All Zeph tools (CLI, MCP server, plugin hooks) r
 
 ## Other Agents
 
+### Quick Install (All Agents)
+
+```bash
+npm exec -y -- skills add zeph-to/plugin
+```
+
+Installs Zeph skill guide to any supported agent via the [skills ecosystem](https://github.com/vercel-labs/skills). For MCP + auto-notifications, use `install.sh` below.
+
 ### Gemini CLI
 
 ```bash
@@ -199,10 +207,10 @@ npx @zeph-to/hook-sdk <command>
 | Gemini CLI | Yes (AfterAgent hook) | Yes | MCP + hook |
 | Codex CLI | Yes (Stop hook) | — | Hook |
 | Copilot CLI | Yes (sessionEnd hook) | — | Hook |
-| Cline | LLM-based | — | Rules file |
-| Aider | LLM-based | — | Config |
+| Cline | LLM-based | — | Skills |
+| Aider | LLM-based | — | Skills |
 
-All agents get auto-notifications via `npx @zeph-to/hook-sdk install`.
+All agents get skill guides via `npm exec -y -- skills add zeph-to/plugin`. For auto-notifications + MCP, use `install.sh`.
 
 ## Uninstall
 

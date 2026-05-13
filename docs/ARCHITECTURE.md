@@ -147,5 +147,6 @@ zeph notify --key ak_... --title "Deploy 완료"
 ```
 
 ### 5. 다른 AI 에이전트 (Cursor, Gemini)에서 쓰고 싶다
-→ **install.sh 실행.** MCP 서버 자동 등록.
+→ **Skills guide:** `npm exec -y -- skills add zeph-to/plugin`
+→ **Full setup (MCP + hooks):** `install.sh` 실행.
 → Auto hooks는 Claude Code only.
