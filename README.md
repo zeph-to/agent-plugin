@@ -43,6 +43,18 @@ With `ZEPH_HOOK_ID` configured, Claude prefers `zeph_prompt` for decisions and `
 
 > `zeph_prompt` and `zeph_input` require `ZEPH_HOOK_ID` — enter it during `zeph install`.
 
+## Mute / Unmute
+
+Too many notifications? Mute them for the current session:
+
+```
+/zeph-mute      — Disable notifications for this project
+/zeph-unmute    — Re-enable notifications
+/zeph-status    — Check current state
+```
+
+Muting creates a temp file in `/tmp` — cleared on reboot. Both hooks (auto-notifications) and CLI calls are silenced.
+
 ## How It Works
 
 ### Session Flow
@@ -168,6 +180,14 @@ npx @zeph-to/hook-sdk <command>
 | `list [--limit 5] [--type note]` | List recent pushes |
 | `dismiss <push-id>` or `--all` | Dismiss pushes |
 | `test` | Verify connection |
+
+**Session commands (Claude Code only):**
+
+| Command | Description |
+|---------|-------------|
+| `/zeph-mute` | Mute notifications for this project |
+| `/zeph-unmute` | Re-enable notifications |
+| `/zeph-status` | Check mute status |
 
 ## Agent Support Matrix
 

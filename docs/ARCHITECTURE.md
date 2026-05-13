@@ -110,6 +110,20 @@ export ZEPH_BASE_URL="https://api.zeph.to/d1"
 zeph notify --title "dev test"
 ```
 
+## Mute 메커니즘
+
+```
+/zeph-mute 실행
+  → Claude가 bash 실행: touch /tmp/zeph-muted-{cksum hash}
+  → Stop hook: mute 파일 체크 → exit 0 (알림 skip)
+  → Ask hook: mute 파일 체크 → exit 0 (알림 skip)
+  → CLI (hook-sdk): mute 파일 체크 → exit 0 (다른 agent도 적용)
+```
+
+- **Scope:** project-dir 기반 hash. 다른 프로젝트 세션은 영향 없음.
+- **생명주기:** `/tmp`에 저장 → 재부팅 시 자동 정리.
+- **커맨드:** `/zeph-mute`, `/zeph-unmute`, `/zeph-status`
+
 ## 유저 시나리오별 가이드
 
 ### 1. 여러 세션 돌리고 끝나면 알림 받고 싶다
