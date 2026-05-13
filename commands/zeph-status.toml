@@ -1,0 +1,13 @@
+description = "Check Zeph notification status"
+prompt = """
+Check Zeph mute status.
+
+Run this bash command:
+```bash
+HASH=$(echo -n "$CLAUDE_PROJECT_DIR" | cksum | cut -d' ' -f1)
+if [ -f "/tmp/zeph-muted-$HASH" ]; then echo "MUTED"; else echo "ACTIVE"; fi
+```
+
+If MUTED: respond "Zeph 알림: 비활성화 상태. /zeph-unmute로 활성화."
+If ACTIVE: respond "Zeph 알림: 활성화 상태. /zeph-mute로 비활성화."
+"""
