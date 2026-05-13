@@ -1,3 +1,15 @@
+---
+name: zeph
+description: >
+  AI agent notification skill via Zeph. Send push notifications, prompt for
+  decisions, request text input across user devices. Use when completing long
+  tasks, encountering errors, or needing user decisions while away from terminal.
+  Triggers on task completion, build/test/deploy, error handling, user decisions.
+metadata:
+  author: zeph-to
+  version: "0.4.0"
+---
+
 # Zeph — AI Agent Notification Skill
 
 Use Zeph MCP tools to communicate with the user across devices (mobile, browser, desktop).
