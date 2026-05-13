@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Stop hook — notify when real work done (tool_count >= 2)
-# Sends last assistant response as push body
+MUTE_HASH=$(echo -n "${CLAUDE_PROJECT_DIR:-$(pwd)}" | cksum | cut -d' ' -f1)
+[ -f "/tmp/zeph-muted-${MUTE_HASH}" ] && exit 0
 
 INPUT=$(cat)
 TRANSCRIPT=$(echo "$INPUT" | jq -r '.transcript_path // empty')
@@ -18,7 +19,6 @@ fi
 PROJECT=$(basename "$CLAUDE_PROJECT_DIR" 2>/dev/null || echo "unknown")
 BRANCH=$(git -C "$CLAUDE_PROJECT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "-")
 
-# Extract last assistant text using jq
 SUMMARY=$(tac "$TRANSCRIPT" 2>/dev/null \
   | grep -m1 '"end_turn"' \
   | jq -r '[.message.content[] | select(.type=="text") | .text] | join(" ") | .[0:5000]' 2>/dev/null)

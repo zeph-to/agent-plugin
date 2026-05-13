@@ -42,6 +42,15 @@ Send a text file to the user's device.
 - `zeph_dismiss_all` — Clear all notifications
 - `zeph_broadcast` — Send notification to a channel's subscribers
 
+## Session Mute
+
+Users can mute notifications for the current project:
+- `/zeph-mute` — disable all notifications (hooks + MCP tools)
+- `/zeph-unmute` — re-enable notifications
+- `/zeph-status` — check current state
+
+When muted, do not call any zeph MCP tools.
+
 ## When NOT to Use
 
 - Short responses the user can see immediately in the terminal

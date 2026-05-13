@@ -9,8 +9,9 @@ const configFile = path.join(process.env.HOME || '~', '.zeph', 'config.json');
 let config = {};
 try { config = JSON.parse(fs.readFileSync(configFile, 'utf-8')); } catch {}
 
-const apiKey = process.env.ZEPH_API_KEY || config.apiKey;
-const hookId = process.env.ZEPH_HOOK_ID || config.hookId;
+const envOr = (key) => { const v = process.env[key]; return v && !v.startsWith('${') ? v : undefined; };
+const apiKey = envOr('ZEPH_API_KEY') || config.apiKey;
+const hookId = envOr('ZEPH_HOOK_ID') || config.hookId;
 
 if (!apiKey) {
   process.stdout.write('Zeph: not configured. Run "npx @zeph-to/hook-sdk setup" to set up API key and start receiving notifications.');
