@@ -84,14 +84,17 @@ LOCAL_VERSION="0.4.0"
 # ── Skills CLI Helper ─────────────────────────────────────────────────────
 install_skills() {
   local agents_flag="$1"
-  if command -v npx >/dev/null 2>&1; then
-    if [ $DRY -eq 0 ]; then
-      npx -y skills add "$REPO" -g -a "$agents_flag" -y 2>/dev/null && ok "Skills installed ($agents_flag)" || skip "Skills CLI unavailable — skipping skill install"
-    else
-      echo "  [dry-run] npx skills add $REPO -g -a $agents_flag -y"
-    fi
+  if [ $DRY -eq 1 ]; then
+    echo "  [dry-run] skills add $REPO -g -a $agents_flag -y"
+    return
+  fi
+  # npx may misinterpret "skills" as an npm subcommand on npm 10.x; fall back to npm exec
+  if command -v npx >/dev/null 2>&1 && npx -y skills add "$REPO" -g -a "$agents_flag" -y 2>/dev/null; then
+    ok "Skills installed ($agents_flag)"
+  elif command -v npm >/dev/null 2>&1 && npm exec -y -- skills add "$REPO" -g -a "$agents_flag" -y 2>/dev/null; then
+    ok "Skills installed ($agents_flag)"
   else
-    skip "npx not found — skipping skill install for $agents_flag"
+    skip "Skills CLI unavailable — skipping skill install for $agents_flag"
   fi
 }
 
