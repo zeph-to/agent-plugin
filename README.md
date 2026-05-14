@@ -7,16 +7,16 @@ Works with Claude Code, Gemini CLI, Cursor, Windsurf, and more.
 ## Quick Start (Claude Code)
 
 ```bash
-# 1. Install plugin
+# Step 1: Install plugin (both commands required)
 claude plugin marketplace add zeph-to/plugin
 claude plugin install zeph@zeph
 
-# 2. Configure — pick one:
+# Step 2: Configure — pick one:
 npx @zeph-to/hook-sdk install                              # interactive
 npx @zeph-to/hook-sdk install --key ak_... --hook hook_... # non-interactive (from Zeph app)
 ```
 
-That's it. Restart Claude Code and you'll start getting notifications.
+Restart Claude Code after setup. Notifications will start automatically.
 
 ## What You Get
 
@@ -84,9 +84,9 @@ Working...
 |-------|--------|-------------|------------|
 | Task completed | Stop hook | 100% | No (notify rule removed) |
 | Question asked | Ask hook | 100% | No |
-| Decision/input needed | MCP zeph_ask | ~80% | No |
-| Decision only | MCP zeph_prompt | ~80% | No |
-| Text input only | MCP zeph_input | ~80% | No |
+| Decision/input needed | MCP zeph_ask | ~80% (depends on AI calling the tool) | No |
+| Decision only | MCP zeph_prompt | ~80% (depends on AI calling the tool) | No |
+| Text input only | MCP zeph_input | ~80% (depends on AI calling the tool) | No |
 | Manual notification | MCP zeph_notify | On request | No |
 
 ### Three Layers
@@ -125,8 +125,8 @@ npx @zeph-to/hook-sdk install
 
 Detects installed agents, prompts for credentials, installs hooks + MCP + rules for each agent.
 
-- **API Key** (required) — get from Zeph app > Settings > API Keys (MCP preset)
-- **Hook ID** (optional) — for `zeph_ask`/`zeph_prompt`/`zeph_input`. Create at Settings > Developer > Hooks
+- **API Key** (required) — Open Zeph app → Settings → API Keys → Create new key
+- **Hook ID** (optional, for `zeph_ask`/`zeph_prompt`/`zeph_input`) — Settings → Developer → Hooks → Create new hook
 
 Saves to `~/.zeph/config.json`. All Zeph tools (CLI, MCP server, plugin hooks) read this file.
 
