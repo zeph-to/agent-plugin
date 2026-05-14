@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Stop hook — notify when real work done (tool_count >= 2)
+ZEPH_CMD="$(command -v zeph 2>/dev/null || echo "npx -y @zeph-to/hook-sdk")"
+command -v jq >/dev/null 2>&1 || exit 0
 MUTE_HASH=$(echo -n "${CLAUDE_PROJECT_DIR:-$(pwd)}" | cksum | cut -d' ' -f1)
 [ -f "/tmp/zeph-muted-${MUTE_HASH}" ] && exit 0
 
@@ -28,4 +30,4 @@ if [ -n "$SUMMARY" ] && [ "$SUMMARY" != "null" ]; then
   BODY="$SUMMARY"
 fi
 
-zeph notify --title "Claude: $PROJECT" --body "$BODY" --type hook 2>/dev/null || true
+$ZEPH_CMD notify --title "Claude: $PROJECT" --body "$BODY" --type hook 2>/dev/null || true
