@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "zeph": {
-      "command": "zeph-mcp",
-      "args": [],
+      "command": "npx",
+      "args": ["-y", "@zeph-to/mcp-server"],
       "env": {
         "ZEPH_API_KEY": "${ZEPH_API_KEY}"
       }
