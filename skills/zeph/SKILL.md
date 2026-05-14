@@ -26,19 +26,29 @@ Send a one-way push notification.
 
 **Format:** title under 50 chars, body under 200 chars. Include `url` for actionable links. Use `priority: "high"` for errors/blockers.
 
+### zeph_ask (requires ZEPH_HOOK_ID) — Preferred
+Ask the user with quick-reply buttons AND a text input field combined. Blocks until response or timeout.
+
+**When to use:**
+- Need user decision with option for custom input ("Deploy where?" → [staging] [prod] + custom text)
+- Task completion → offer next action choices + free-text option
+- Any question where buttons alone might not cover all answers
+- Include `fallback` for timeout auto-selection
+
+**Prefer `zeph_ask` over `zeph_prompt`/`zeph_input`** — it handles both cases in a single notification.
+
 ### zeph_prompt (requires ZEPH_HOOK_ID)
 Ask the user to choose from 2-4 options. Blocks until response or timeout.
 
 **When to use:**
-- Need user decision (deploy target, confirm destructive action)
-- Task completion → offer next action choices
+- Simple yes/no or multiple choice with no need for custom text
 - Include `fallback` for timeout auto-selection
 
 ### zeph_input (requires ZEPH_HOOK_ID)
 Request free-form text input. Blocks until response or timeout.
 
 **When to use:**
-- Need free-form text (commit message, env var value, description)
+- Need free-form text only (commit message, env var value, description)
 - User is away from terminal
 
 ### zeph_clipboard
@@ -76,12 +86,12 @@ Send a text file to the user's device.
 zeph_notify(title: "Build complete", body: "All 42 tests passed. Bundle: 1.2MB")
 ```
 
-**Decision gate:**
+**Decision with custom option:**
 ```
-zeph_prompt(title: "Deploy to production?", actions: [{id:"yes", label:"Deploy"}, {id:"no", label:"Cancel"}], fallback: "no")
+zeph_ask(title: "Deploy where?", actions: [{id:"staging", label:"Staging"}, {id:"prod", label:"Production"}], placeholder: "or type custom env...", fallback: "staging")
 ```
 
 **Next action after work:**
 ```
-zeph_prompt(title: "Done. Next?", actions: [{id:"/review", label:"Review"}, {id:"/ship", label:"Ship"}, {id:"done", label:"End"}])
+zeph_ask(title: "Done. Next?", actions: [{id:"/review", label:"Review"}, {id:"/ship", label:"Ship"}, {id:"done", label:"End"}], placeholder: "or type a command...")
 ```

@@ -14,20 +14,19 @@ Send a one-way push notification.
 
 **Format:** title under 50 chars, body under 200 chars. Include `url` for actionable links. Use `priority: "high"` for errors/blockers.
 
+### zeph_ask (requires ZEPH_HOOK_ID) — Preferred
+Ask the user with quick-reply buttons AND a text input field combined. Blocks until response or timeout.
+
+**When to use:**
+- Need user decision with option for custom input
+- Task completion → offer next action choices + free-text option
+- Prefer over `zeph_prompt`/`zeph_input` — handles both in one notification
+
 ### zeph_prompt (requires ZEPH_HOOK_ID)
 Ask the user to choose from 2-4 options. Blocks until response or timeout.
 
-**When to use:**
-- Need user decision (deploy target, confirm destructive action)
-- Task completion → offer next action choices
-- Include `fallback` for timeout auto-selection
-
 ### zeph_input (requires ZEPH_HOOK_ID)
 Request free-form text input. Blocks until response or timeout.
-
-**When to use:**
-- Need free-form text (commit message, env var value, description)
-- User is away from terminal
 
 ### zeph_clipboard
 Copy text to the user's device clipboard.
@@ -62,4 +61,4 @@ When muted, do not call any zeph MCP tools.
 
 After completing a task that took significant effort (multiple tool calls, file changes, or long analysis), automatically send `zeph_notify` with a summary. Do not ask permission — just notify.
 
-After completing work, offer next actions via `zeph_prompt` if ZEPH_HOOK_ID is available.
+After completing work, offer next actions via `zeph_ask` (or `zeph_prompt`) if ZEPH_HOOK_ID is available.
