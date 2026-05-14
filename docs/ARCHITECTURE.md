@@ -11,7 +11,7 @@
 ├─────────────────────────────────────────────────────────────┤
 │ Layer 2: MCP Server (@zeph-to/mcp-server)                   │
 │ → AI가 tool 호출. 요청 시 동작.                               │
-│ → zeph_notify, zeph_prompt, zeph_input, zeph_clipboard 등   │
+│ → zeph_ask, zeph_notify, zeph_prompt, zeph_input 등         │
 │ → Claude Code, Gemini CLI, Cursor, Windsurf 지원            │
 ├─────────────────────────────────────────────────────────────┤
 │ Layer 1: CLI (@zeph-to/hook-sdk)                            │
@@ -80,6 +80,7 @@ Claude가 유저에게 질문 (AskUserQuestion tool 호출)
 | Tool | 용도 | 동작 | 필요 env |
 |------|------|------|----------|
 | zeph_notify | 알림 전송 | fire & forget | ZEPH_API_KEY |
+| zeph_ask | 선택지+텍스트 결합 | blocking (응답 대기) | + ZEPH_HOOK_ID |
 | zeph_prompt | 선택지 질문 | blocking (응답 대기) | + ZEPH_HOOK_ID |
 | zeph_input | 텍스트 입력 | blocking (응답 대기) | + ZEPH_HOOK_ID |
 | zeph_clipboard | 클립보드 복사 | fire & forget | ZEPH_API_KEY |
@@ -136,7 +137,7 @@ zeph notify --title "dev test"
 ### 3. 모바일에서 직접 답변하고 싶다
 → 세션 시작 시 프롬프트:
 ```
-나한테 물어볼 거 있으면 zeph_prompt 써. 끝나면 zeph_notify로 알려줘.
+나한테 물어볼 거 있으면 zeph_ask 써. 끝나면 zeph_notify로 알려줘.
 ```
 → ZEPH_HOOK_ID 필요.
 

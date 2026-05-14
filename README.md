@@ -31,17 +31,18 @@ These use hooks — shell commands that fire on Claude events. 100% reliable.
 
 ### On request — Claude calls when appropriate
 
-With `ZEPH_HOOK_ID` configured, Claude prefers `zeph_prompt` for decisions and `zeph_input` for text input. You can answer from your phone without returning to the terminal.
+With `ZEPH_HOOK_ID` configured, Claude prefers `zeph_ask` for decisions and input — showing buttons and a text field together. You can answer from your phone without returning to the terminal.
 
 | Tool | What it does | When Claude uses it |
 |------|-------------|---------------------|
-| `zeph_prompt` | Pick from 2-4 options | Decisions, confirmations, next steps |
-| `zeph_input` | Free-form text input | Commit messages, descriptions, values |
+| `zeph_ask` | Buttons + text input combined | Decisions, next steps, custom input |
+| `zeph_prompt` | Pick from 2-4 options | Simple yes/no choices |
+| `zeph_input` | Free-form text input | Text-only input |
 | `zeph_notify` | Manual push notification | When explicitly asked |
 | `zeph_clipboard` | Copy to clipboard | When explicitly asked |
 | `zeph_file` | Send a file | When explicitly asked |
 
-> `zeph_prompt` and `zeph_input` require `ZEPH_HOOK_ID` — enter it during `zeph install`.
+> `zeph_ask`, `zeph_prompt`, and `zeph_input` require `ZEPH_HOOK_ID` — enter it during `zeph install`.
 
 ## Mute / Unmute
 
@@ -62,16 +63,13 @@ Muting creates a temp file in `/tmp` — cleared on reboot. Both hooks (auto-not
 ```
 SessionStart hook
   ├─ ~/.zeph/config.json 읽기
-  ├─ HOOK_ID 있음 → prompt/input 규칙 주입
+  ├─ HOOK_ID 있음 → ask/prompt/input 규칙 주입
   └─ HOOK_ID 없음 → notify only 규칙 주입
 
 Working...
   │
-  ├─ 선택지 필요 → zeph_prompt → 모바일에서 터치 응답
-  │   "시뮬+로컬" 선택 → Claude 이어서 작업
-  │
-  ├─ 텍스트 필요 → zeph_input → 모바일에서 입력
-  │   "커밋 메시지 입력" → Claude가 사용
+  ├─ 선택지+입력 필요 → zeph_ask → 모바일에서 버튼 or 텍스트 응답
+  │   버튼 탭 or 커스텀 입력 → Claude 이어서 작업
   │
   ├─ 복잡한 질문 → AskUserQuestion → Ask hook 자동 push
   │   "Xcode 로그 보이는지?" → 모바일 알림 → 터미널로 이동
@@ -86,8 +84,9 @@ Working...
 |-------|--------|-------------|------------|
 | Task completed | Stop hook | 100% | No (notify rule removed) |
 | Question asked | Ask hook | 100% | No |
-| Decision needed | MCP zeph_prompt | ~80% | No |
-| Text input needed | MCP zeph_input | ~80% | No |
+| Decision/input needed | MCP zeph_ask | ~80% | No |
+| Decision only | MCP zeph_prompt | ~80% | No |
+| Text input only | MCP zeph_input | ~80% | No |
 | Manual notification | MCP zeph_notify | On request | No |
 
 ### Three Layers
@@ -100,13 +99,13 @@ zeph-to/plugin (Claude Code plugin)
   ├─ .mcp.json              → MCP server 등록
   └─ uses:
       ├─ @zeph-to/hook-sdk     → CLI (notify/list/dismiss/test/setup)
-      └─ @zeph-to/mcp-server   → MCP tools (prompt/input/clipboard/file...)
+      └─ @zeph-to/mcp-server   → MCP tools (ask/prompt/input/clipboard/file...)
 ```
 
 | Layer | Package | What it does | Reliability |
 |-------|---------|-------------|-------------|
 | **Hooks** | `@zeph-to/hook-sdk` (CLI) | Auto-fires on Claude events | 100% — no AI cooperation needed |
-| **MCP Server** | `@zeph-to/mcp-server` | AI-callable tools (prompt, input...) | Depends on AI following rules |
+| **MCP Server** | `@zeph-to/mcp-server` | AI-callable tools (ask, prompt, input...) | Depends on AI following rules |
 | **Plugin** | `zeph-to/plugin` | Bundles hooks + MCP + behavior rules | Installed once |
 
 ### Config Priority
@@ -127,7 +126,7 @@ npx @zeph-to/hook-sdk install
 Detects installed agents, prompts for credentials, installs hooks + MCP + rules for each agent.
 
 - **API Key** (required) — get from Zeph app > Settings > API Keys (MCP preset)
-- **Hook ID** (optional) — for `zeph_prompt`/`zeph_input`. Create at Settings > Developer > Hooks
+- **Hook ID** (optional) — for `zeph_ask`/`zeph_prompt`/`zeph_input`. Create at Settings > Developer > Hooks
 
 Saves to `~/.zeph/config.json`. All Zeph tools (CLI, MCP server, plugin hooks) read this file.
 
