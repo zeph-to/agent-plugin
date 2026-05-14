@@ -71,8 +71,8 @@ if os.path.exists(f):
     except: pass
 if 'mcpServers' not in d: d['mcpServers'] = {}
 d['mcpServers']['zeph'] = {
-    'command': 'npx',
-    'args': ['-y', '@zeph-to/mcp-server'],
+    'command': 'zeph-mcp',
+    'args': [],
     'env': {'ZEPH_API_KEY': '\${ZEPH_API_KEY}'}
 }
 json.dump(d, open(f, 'w'), indent=2)
@@ -168,10 +168,18 @@ if [ $VERIFY -eq 1 ]; then
 
   # Check MCP server availability
   TOTAL=$((TOTAL + 1))
-  if command -v npx >/dev/null 2>&1; then
-    ok "npx available (MCP server can start)"; PASS=$((PASS + 1))
+  if command -v zeph-mcp >/dev/null 2>&1; then
+    ok "zeph-mcp available (MCP server can start)"; PASS=$((PASS + 1))
   else
-    fail "npx not found — MCP server cannot start"
+    fail "zeph-mcp not found — run: npm install -g @zeph-to/mcp-server"
+  fi
+
+  # Check CLI availability (used by hooks for notifications)
+  TOTAL=$((TOTAL + 1))
+  if command -v zeph >/dev/null 2>&1; then
+    ok "zeph CLI available (hooks can send notifications)"; PASS=$((PASS + 1))
+  else
+    fail "zeph not found — run: npm install -g @zeph-to/hook-sdk"
   fi
 
   # Check per-agent configs
@@ -284,6 +292,18 @@ fi
 # ── Install ────────────────────────────────────────────────────────────────
 echo ""
 
+# Install MCP server globally (npx broken with scoped packages on npm 10+)
+echo -e "📦 Installing MCP server..."
+if ! command -v npm >/dev/null 2>&1; then
+  fail "npm not found — install Node.js first"
+  exit 1
+fi
+if [ $DRY -eq 0 ]; then
+  npm install -g @zeph-to/mcp-server@latest @zeph-to/hook-sdk@latest 2>&1 | tail -1 && ok "MCP server & CLI installed" || fail "Install failed — try: sudo npm install -g @zeph-to/mcp-server@latest @zeph-to/hook-sdk@latest"
+else
+  echo "  [dry-run] npm install -g @zeph-to/mcp-server@latest @zeph-to/hook-sdk@latest"
+fi
+
 # Claude Code
 if [ $HAS_CLAUDE -eq 1 ] && should_install "claude"; then
   echo -e "📦 Installing for Claude Code..."
@@ -301,7 +321,7 @@ if [ $HAS_GEMINI -eq 1 ] && should_install "gemini"; then
   echo -e "📦 Installing for Gemini CLI..."
   install_skills "gemini-cli"
   if [ $DRY -eq 0 ]; then
-    gemini mcp add zeph -- npx -y @zeph-to/mcp-server 2>/dev/null && ok "MCP server added" || ok "MCP already configured"
+    gemini mcp add zeph -- zeph-mcp 2>/dev/null && ok "MCP server added" || ok "MCP already configured"
     # AfterAgent hook for auto-notifications
     if command -v python3 >/dev/null 2>&1; then
       python3 -c "
@@ -312,7 +332,7 @@ if os.path.exists(f):
     try: d = json.load(open(f))
     except: pass
 d.setdefault('hooks', {})
-d['hooks']['AfterAgent'] = [{'matcher': '*', 'hooks': [{'name': 'zeph-notify', 'type': 'command', 'command': 'npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true'}]}]
+d['hooks']['AfterAgent'] = [{'matcher': '*', 'hooks': [{'name': 'zeph-notify', 'type': 'command', 'command': 'zeph notify --title \"Task done\" 2>/dev/null || true'}]}]
 d['hooksConfig'] = {'enabled': True}
 os.makedirs(os.path.dirname(f), exist_ok=True)
 json.dump(d, open(f, 'w'), indent=2)
@@ -333,7 +353,7 @@ if [ $HAS_CURSOR -eq 1 ] && should_install "cursor"; then
 {
   "version": 1,
   "hooks": {
-    "stop": [{ "command": "npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true" }]
+    "stop": [{ "command": "zeph notify --title \"Task done\" 2>/dev/null || true" }]
   }
 }
 CURSOR_HOOKS
@@ -353,7 +373,7 @@ if [ $HAS_WINDSURF -eq 1 ] && should_install "windsurf"; then
     cat > "$HOME/.codeium/windsurf/hooks.json" <<'WINDSURF_HOOKS'
 {
   "hooks": {
-    "post_cascade_response": [{ "command": "npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true", "show_output": false }]
+    "post_cascade_response": [{ "command": "zeph notify --title \"Task done\" 2>/dev/null || true", "show_output": false }]
   }
 }
 WINDSURF_HOOKS
@@ -379,7 +399,7 @@ if [ $HAS_CODEX -eq 1 ] && should_install "codex"; then
 {
   "version": 1,
   "hooks": {
-    "Stop": [{ "type": "command", "bash": "npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true" }]
+    "Stop": [{ "type": "command", "bash": "zeph notify --title \"Task done\" 2>/dev/null || true" }]
   }
 }
 CODEX_HOOKS
@@ -399,7 +419,7 @@ if [ $HAS_COPILOT -eq 1 ] && should_install "copilot"; then
 {
   "version": 1,
   "hooks": {
-    "sessionEnd": [{ "type": "command", "bash": "npx @zeph-to/hook-sdk notify --title \"Task done\" 2>/dev/null || true", "timeoutSec": 10 }]
+    "sessionEnd": [{ "type": "command", "bash": "zeph notify --title \"Task done\" 2>/dev/null || true", "timeoutSec": 10 }]
   }
 }
 COPILOT_HOOKS
