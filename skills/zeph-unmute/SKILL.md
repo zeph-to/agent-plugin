@@ -3,6 +3,9 @@ name: zeph-unmute
 description: >
   Unmute Zeph push notifications for this session. Re-enables automatic
   notifications from Stop and AskUserQuestion hooks.
+metadata:
+  author: zeph-to
+  version: "0.4.0"
 ---
 
 Unmute Zeph notifications for this session.

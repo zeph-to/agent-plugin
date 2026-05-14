@@ -62,20 +62,20 @@ Muting creates a temp file in `/tmp` — cleared on reboot. Both hooks (auto-not
 
 ```
 SessionStart hook
-  ├─ ~/.zeph/config.json 읽기
-  ├─ HOOK_ID 있음 → ask/prompt/input 규칙 주입
-  └─ HOOK_ID 없음 → notify only 규칙 주입
+  ├─ Read ~/.zeph/config.json
+  ├─ HOOK_ID present → inject ask/prompt/input rules
+  └─ HOOK_ID absent  → inject notify-only rules
 
 Working...
   │
-  ├─ 선택지+입력 필요 → zeph_ask → 모바일에서 버튼 or 텍스트 응답
-  │   버튼 탭 or 커스텀 입력 → Claude 이어서 작업
+  ├─ Choices + input needed → zeph_ask → button or text reply from mobile
+  │   Button tap or custom input → Claude continues working
   │
-  ├─ 복잡한 질문 → AskUserQuestion → Ask hook 자동 push
-  │   "Xcode 로그 보이는지?" → 모바일 알림 → 터미널로 이동
+  ├─ Complex question → AskUserQuestion → Ask hook auto-push
+  │   "Can you see the Xcode logs?" → mobile notification → switch to terminal
   │
-  └─ 작업 완료
-      └─ Stop hook → transcript 파싱 → push: 응답 요약
+  └─ Task complete
+      └─ Stop hook → parse transcript → push: response summary
 ```
 
 ### Notification Summary
@@ -93,10 +93,10 @@ Working...
 
 ```
 zeph-to/plugin (Claude Code plugin)
-  ├─ hooks/zeph-setup.js    → SessionStart: 규칙 주입
-  ├─ hooks/zeph-stop.sh     → Stop: 자동 완료 알림
-  ├─ hooks/zeph-ask.sh      → PreToolUse: 질문 알림
-  ├─ .mcp.json              → MCP server 등록
+  ├─ hooks/zeph-setup.js    → SessionStart: inject rules
+  ├─ hooks/zeph-stop.sh     → Stop: auto completion notification
+  ├─ hooks/zeph-ask.sh      → PreToolUse: question notification
+  ├─ .mcp.json              → MCP server registration
   └─ uses:
       ├─ @zeph-to/hook-sdk     → CLI (notify/list/dismiss/test/setup)
       └─ @zeph-to/mcp-server   → MCP tools (ask/prompt/input/clipboard/file...)

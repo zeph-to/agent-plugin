@@ -3,6 +3,9 @@ name: zeph-status
 description: >
   Check Zeph notification status for this session. Shows whether notifications
   are currently muted or active.
+metadata:
+  author: zeph-to
+  version: "0.4.0"
 ---
 
 Check Zeph mute status.

@@ -3,6 +3,9 @@ name: zeph-setup
 description: >
   Configure Zeph API key and Hook ID for AI agent notifications.
   Guides through key creation, environment variable setup, and verification.
+metadata:
+  author: zeph-to
+  version: "0.4.0"
 ---
 
 Help the user set up Zeph notifications. Follow these steps:
