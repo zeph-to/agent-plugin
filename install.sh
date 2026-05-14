@@ -71,8 +71,8 @@ if os.path.exists(f):
     except: pass
 if 'mcpServers' not in d: d['mcpServers'] = {}
 d['mcpServers']['zeph'] = {
-    'command': 'npx',
-    'args': ['-y', '@zeph-to/mcp-server'],
+    'command': 'zeph-mcp',
+    'args': [],
     'env': {'ZEPH_API_KEY': '\${ZEPH_API_KEY}'}
 }
 json.dump(d, open(f, 'w'), indent=2)
@@ -168,10 +168,10 @@ if [ $VERIFY -eq 1 ]; then
 
   # Check MCP server availability
   TOTAL=$((TOTAL + 1))
-  if command -v npx >/dev/null 2>&1; then
-    ok "npx available (MCP server can start)"; PASS=$((PASS + 1))
+  if command -v zeph-mcp >/dev/null 2>&1; then
+    ok "zeph-mcp available (MCP server can start)"; PASS=$((PASS + 1))
   else
-    fail "npx not found — MCP server cannot start"
+    fail "zeph-mcp not found — run: npm install -g @zeph-to/mcp-server"
   fi
 
   # Check per-agent configs
