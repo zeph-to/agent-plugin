@@ -18,6 +18,9 @@ if (!apiKey) {
   process.exit(0);
 }
 
+const { execSync } = require('child_process');
+const hasJq = (() => { try { execSync('command -v jq', { stdio: 'pipe' }); return true; } catch { return false; } })();
+
 const mode = hookId ? 'notify + ask + prompt + input' : 'notify only';
 
 const rules = `ZEPH NOTIFICATION ACTIVE — mode: ${mode}
@@ -36,4 +39,8 @@ ${hookId ? `3. PREFER zeph_ask for ANY question to the user — it shows buttons
 
 ACTIVE EVERY RESPONSE. Do not forget after many turns. Still active after context compression.`;
 
-process.stdout.write(rules);
+if (!hasJq) {
+  process.stdout.write(rules + '\n\n⚠️ jq not found — auto-notifications (Stop/Ask hooks) are disabled. Install: brew install jq (macOS) or apt install jq (Linux).');
+} else {
+  process.stdout.write(rules);
+}
