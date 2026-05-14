@@ -226,4 +226,4 @@ curl -fsSL https://raw.githubusercontent.com/zeph-to/plugin/main/install.sh | ba
 
 ## License
 
-MIT
+Apache 2.0
