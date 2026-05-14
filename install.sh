@@ -174,6 +174,14 @@ if [ $VERIFY -eq 1 ]; then
     fail "zeph-mcp not found — run: npm install -g @zeph-to/mcp-server"
   fi
 
+  # Check CLI availability (used by hooks for notifications)
+  TOTAL=$((TOTAL + 1))
+  if command -v zeph >/dev/null 2>&1; then
+    ok "zeph CLI available (hooks can send notifications)"; PASS=$((PASS + 1))
+  else
+    fail "zeph not found — run: npm install -g @zeph-to/hook-sdk"
+  fi
+
   # Check per-agent configs
   if [ $HAS_CLAUDE -eq 1 ]; then
     TOTAL=$((TOTAL + 1))
@@ -286,8 +294,12 @@ echo ""
 
 # Install MCP server globally (npx broken with scoped packages on npm 10+)
 echo -e "📦 Installing MCP server..."
+if ! command -v npm >/dev/null 2>&1; then
+  fail "npm not found — install Node.js first"
+  exit 1
+fi
 if [ $DRY -eq 0 ]; then
-  npm install -g @zeph-to/mcp-server@latest @zeph-to/hook-sdk@latest 2>/dev/null && ok "MCP server & CLI installed" || ok "Already installed"
+  npm install -g @zeph-to/mcp-server@latest @zeph-to/hook-sdk@latest 2>&1 | tail -1 && ok "MCP server & CLI installed" || fail "Install failed — try: sudo npm install -g @zeph-to/mcp-server@latest @zeph-to/hook-sdk@latest"
 else
   echo "  [dry-run] npm install -g @zeph-to/mcp-server@latest @zeph-to/hook-sdk@latest"
 fi
