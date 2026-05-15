@@ -71,8 +71,8 @@ if os.path.exists(f):
     except: pass
 if 'mcpServers' not in d: d['mcpServers'] = {}
 d['mcpServers']['zeph'] = {
-    'command': 'zeph-mcp',
-    'args': [],
+    'command': 'npx',
+    'args': ['-y', '@zeph-to/mcp-server'],
     'env': {'ZEPH_API_KEY': '\${ZEPH_API_KEY}'}
 }
 json.dump(d, open(f, 'w'), indent=2)
@@ -168,10 +168,10 @@ if [ $VERIFY -eq 1 ]; then
 
   # Check MCP server availability
   TOTAL=$((TOTAL + 1))
-  if command -v zeph-mcp >/dev/null 2>&1; then
-    ok "zeph-mcp available (MCP server can start)"; PASS=$((PASS + 1))
+  if command -v npx >/dev/null 2>&1; then
+    ok "npx available (MCP server can start via npx)"; PASS=$((PASS + 1))
   else
-    fail "zeph-mcp not found — run: npm install -g @zeph-to/mcp-server"
+    fail "npx not found — install Node.js to enable MCP server"
   fi
 
   # Check CLI availability (used by hooks for notifications)
@@ -321,7 +321,7 @@ if [ $HAS_GEMINI -eq 1 ] && should_install "gemini"; then
   echo -e "📦 Installing for Gemini CLI..."
   install_skills "gemini-cli"
   if [ $DRY -eq 0 ]; then
-    gemini mcp add zeph -- zeph-mcp 2>/dev/null && ok "MCP server added" || ok "MCP already configured"
+    gemini mcp add zeph -- npx -y @zeph-to/mcp-server 2>/dev/null && ok "MCP server added" || ok "MCP already configured"
     # AfterAgent hook for auto-notifications
     if command -v python3 >/dev/null 2>&1; then
       python3 -c "
