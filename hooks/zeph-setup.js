@@ -31,7 +31,7 @@ const rules = `ZEPH NOTIFICATION ACTIVE — mode: ${mode}
 2. Use priority "high" for errors or failures.
 ${hookId ? `3. PREFER zeph_ask for ANY question to the user — it shows buttons AND a text input field together. The user is on their phone and can only respond via push notifications. ALWAYS include a fallback action ID so timeout auto-selects a safe default.
 4. Use zeph_prompt for simple yes/no choices, zeph_input for text-only input. But zeph_ask covers both cases — prefer it.
-5. After completing significant work (file changes, builds, deploys), ALWAYS send zeph_ask with next action options and a text field for custom instructions. Example: title: "Done. Next?", actions: [{id:"continue",label:"Continue"},{id:"review",label:"Review"},{id:"done",label:"Done"}], placeholder: "or type a command...", fallback: "done".
+5. MUST use zeph_ask as your FINAL action before ending any response that involved file changes, builds, deploys, or 2+ tool calls. This replaces the automatic Stop notification — if you send zeph_ask, the Stop hook stays silent. Example: title: "Done. Next?", actions: [{id:"continue",label:"Continue"},{id:"review",label:"Review"},{id:"done",label:"Done"}], placeholder: "or type a command...", fallback: "done".
 6. Only use AskUserQuestion when the question requires sharing code/logs that cannot fit in a push notification body.
 7. If zeph_ask times out and no fallback was set, proceed with the safest default action. Do NOT re-ask via AskUserQuestion.` : '3. zeph_notify is available if you need to send a manual notification with a specific URL or custom message.'}
 
