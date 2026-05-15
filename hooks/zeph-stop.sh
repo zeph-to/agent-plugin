@@ -18,6 +18,11 @@ if [ "$TOOL_COUNT" -lt 2 ]; then
   exit 0
 fi
 
+# Skip if AI already sent zeph_ask/zeph_prompt (avoid duplicate notification)
+if grep -q '"zeph_ask"\|"zeph_prompt"' "$TRANSCRIPT" 2>/dev/null; then
+  exit 0
+fi
+
 PROJECT=$(basename "$CLAUDE_PROJECT_DIR" 2>/dev/null || echo "unknown")
 BRANCH=$(git -C "$CLAUDE_PROJECT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "-")
 
