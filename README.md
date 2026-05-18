@@ -74,15 +74,27 @@ Working...
   ├─ Complex question → AskUserQuestion → Ask hook auto-push
   │   "Can you see the Xcode logs?" → mobile notification → switch to terminal
   │
-  └─ Task complete
-      └─ Stop hook → parse transcript → push: response summary
+  ├─ Task complete → zeph_ask "Done. Next?" → user picks or types
+  │   Response treated as direct instruction → execute → loop
+  │   Select "Done" → session ends
+  │
+  └─ Fallback: if AI skipped zeph_ask → Stop hook sends notify
 ```
+
+### Ask Loop
+
+When `ZEPH_HOOK_ID` is configured, Claude uses `zeph_ask` as its final action after completing work. The user can respond from their phone:
+
+- **Tap a button** — e.g. "Continue", "Review", "Done"
+- **Type text** — e.g. "commit and push", "/ship", "fix the tests"
+
+The response is executed immediately without confirmation, then Claude sends another `zeph_ask`. This loop continues until the user selects "Done". If the AI skips `zeph_ask`, the Stop hook sends a one-way notification as fallback.
 
 ### Notification Summary
 
 | Event | Source | Reliability | Duplicates |
 |-------|--------|-------------|------------|
-| Task completed | Stop hook | 100% | No (notify rule removed) |
+| Task completed | Stop hook | 100% | No (skipped if AI sent zeph_ask) |
 | Question asked | Ask hook | 100% | No |
 | Decision/input needed | MCP zeph_ask | ~80% (depends on AI calling the tool) | No |
 | Decision only | MCP zeph_prompt | ~80% (depends on AI calling the tool) | No |
@@ -129,6 +141,15 @@ Detects installed agents, prompts for credentials, installs hooks + MCP + rules 
 - **Hook ID** (optional, for `zeph_ask`/`zeph_prompt`/`zeph_input`) — Settings → Developer → Hooks → Create new hook
 
 Saves to `~/.zeph/config.json`. All Zeph tools (CLI, MCP server, plugin hooks) read this file.
+
+### Dependencies
+
+- **Node.js** (required) — for MCP server and CLI
+- **jq** (recommended) — for auto-notifications (Stop/Ask hooks). Without jq, hooks are disabled silently. A warning is shown at session start. Install: `brew install jq` (macOS) or `apt install jq` (Linux)
+
+### E2E Encryption
+
+Push notifications are encrypted end-to-end by default using AES-256-GCM + ECDH P-256. Keys are synced with the server on first run. Toggle encryption in the Zeph app (Settings → Encryption). When disabled, the MCP server and CLI send plaintext.
 
 ## Other Agents
 
