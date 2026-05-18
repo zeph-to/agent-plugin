@@ -79,6 +79,12 @@ Send a text file to the user's device.
 - Every single tool call — only notify on meaningful milestones
 - Trivial confirmations that don't need user attention
 
+## Ask Loop Pattern
+
+Use `zeph_ask` as your FINAL action after significant work. The response is a direct user instruction — execute immediately without confirmation, then send another `zeph_ask`. Loop until user selects "Done".
+
+If you send `zeph_ask`, the Stop hook stays silent (no duplicate notification).
+
 ## Patterns
 
 **Task completion:**
