@@ -35,7 +35,9 @@ if [ -n "$SUMMARY" ] && [ "$SUMMARY" != "null" ]; then
   BODY="$SUMMARY"
 fi
 
-SESSION_ID=$(cat "/tmp/zeph-session-${MUTE_HASH}" 2>/dev/null)
+# Extract session UUID from transcript path (more reliable than tmp file)
+SESSION_ID=$(echo "$TRANSCRIPT" | grep -o '[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}')
+[ -z "$SESSION_ID" ] && SESSION_ID=$(cat "/tmp/zeph-session-${MUTE_HASH}" 2>/dev/null)
 SESSION_FLAG=""
 [ -n "$SESSION_ID" ] && SESSION_FLAG="--session $SESSION_ID"
 $ZEPH_CMD notify --title "Claude: $PROJECT" --body "$BODY" --type hook $SESSION_FLAG 2>/dev/null || true
